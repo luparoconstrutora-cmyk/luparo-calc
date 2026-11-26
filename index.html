@@ -194,7 +194,8 @@ details{margin-top:6px}summary{cursor:pointer;font-weight:600;min-height:44px;di
 .sumbar small{color:var(--mut);font-size:12.5px}.sumbar b{font:700 24px "Barlow Condensed",sans-serif}.sumbar b i{font-style:normal;font-size:15px;color:var(--mut)}
 .sumbar button{background:var(--navy);color:#fff;border:0;min-height:46px;white-space:nowrap}
 body.hasbar{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
-#concArt svg{max-height:120px;margin:4px auto 0}
+#concArt{display:none}
+.seg{margin-bottom:16px}
 
 .inst{margin-top:14px;background:var(--or);border:0;color:#fff;border-radius:12px}
 .inst[hidden]{display:none}
@@ -482,7 +483,7 @@ const volConc=r=>CT[r.t]?CT[r.t].v(r):0;
 const cTipo=()=>CT[V('concTipo')]?V('concTipo'):'laje';
 function ensureRow(t){}
 function renderSeg(){const t=cTipo();$('#seg').innerHTML=Object.entries(CT).map(([k,c])=>{const n=S.rows.conc.filter(r=>r.t===k).length;return `<button data-seg="${k}" class="${k===t?'on':''}" aria-pressed="${k===t}">${art(k)}<span>${c.n}</span>${n?`<span class="n">${n}</span>`:''}</button>`}).join('')}
-function renderArt(){$('#concArt').innerHTML=art(cTipo())}
+function renderArt(){}
 function renderConc(){renderArt();renderPF('conc');renderList('conc')}
 function fillConcSel(){const sel=$('#concTraco');if(!sel)return;const L=TR.filter(t=>t.tipo==='Concreto'||t.tipo==='Graute'||t.tipo==='Contrapiso');const A=L.length?L:TR;const cur=V('concTraco');
  sel.innerHTML=A.map(t=>`<option value="${esc(t.id)}">${esc(t.nome)}</option>`).join('');if(A.some(t=>t.id===cur))sel.value=cur;else{S.v.concTraco=A[0]?A[0].id:'';sel.value=S.v.concTraco}}
