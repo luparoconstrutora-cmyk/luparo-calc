@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="icon" href="/icon-192.png"><meta name="theme-color" content="#0e2147"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Luparo Calc"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Calculadora de Obra Luparo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: app de canteiro da Luparo: direto, confiável, números grandes
+   IDEA: a placa de obra azul-noite da Luparo com a prancheta de cálculo embaixo
+   PICTURE: peças desenhadas em isométrico com cotas, como no projeto
+   COLOUR and TYPE: azul-noite da marca, branco, laranja de canteiro; Barlow Condensed + Barlow
+   LAYOUT: capa com logo e cartões de cálculo; telas internas com cabeçalho curvo, seletor de peça, desenho cotado, campos e resultado */
+:root{color-scheme:light dark;--navy:#0e2147;--navy2:#173a73;--glow:#2f7fe0;--or:#f58a1f;--bg:light-dark(#f1f5fb,#0b1322);--card:light-dark(#fff,#121e33);--ink:light-dark(#11203b,#e7eef8);--mut:light-dark(#56688a,#94a5bf);--line:light-dark(#d5dfee,#22324d);--tint:light-dark(#e8f0fc,#17263f);--warn:light-dark(#b2470b,#ffb07a);
+--it:light-dark(#f4f7fb,#3b4b66);--il:light-dark(#cdd7e5,#2b3a52);--ir:light-dark(#a9b8cc,#22304a);--sk:light-dark(#1b2f57,#9fb4d6);--gt:light-dark(#e9d9bd,#5a4a33);--gl:light-dark(#d3bf9c,#4a3c29);--gr:light-dark(#bea783,#3d3122)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,system-ui,sans-serif;overflow-x:clip;padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+h1,h2,h3{font-family:"Barlow Condensed",Barlow,sans-serif;line-height:1.05;margin:0;text-wrap:balance}
+.pane{display:none}.pane.on{display:block}
+/* capa */
+.hero{position:relative;background:radial-gradient(120% 90% at 50% -20%,#1d4f9a 0,var(--navy) 55%,#081530 100%);color:#fff;padding:28px max(5vw,18px) 64px;overflow:hidden}
+.hero .in{position:relative;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.9fr);align-items:center;gap:16px;z-index:1}
+.hero img{height:clamp(92px,16vw,132px);width:auto;display:block}
+.hero h1{font-size:clamp(30px,6vw,46px);margin-top:14px}.hero h1 em{font-style:normal;color:var(--or)}
+.hero p{margin:6px 0 0;color:#c9d6ec;font-size:clamp(15px,2.6vw,18px);max-width:34ch}
+.hero .bld{width:100%;height:auto;max-height:230px}
+.curve{position:absolute;left:0;right:0;bottom:-1px;width:100%;height:46px;display:block}
+@media(max-width:560px){.hero .in{grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr)}.hero .bld{opacity:.7}}
+.wrap{max-width:1100px;margin:0 auto;padding:6px max(4vw,14px) 30px}
+.sec{font:700 22px/1.1 "Barlow Condensed",sans-serif;margin:22px 0 10px;color:var(--ink);display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.sec span{font:500 14.5px Barlow,sans-serif;color:var(--mut)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+@media(max-width:560px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
+.tile{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:6px;text-decoration:none;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 12px 14px;min-height:128px;box-shadow:0 6px 18px -14px #0e2147;transition:transform .15s,border-color .15s}
+.tile:hover{transform:translateY(-2px);border-color:var(--or)}
+.tile:focus-visible{outline:3px solid var(--or);outline-offset:2px}
+.tile .pic svg{width:100%;height:92px;display:block}
+.tile b{display:block;font:700 22px/1.05 "Barlow Condensed",sans-serif;color:var(--ink)}
+.tile small{display:block;color:var(--mut);font-size:14px;line-height:1.3;margin-top:4px;padding-right:26px}
+.tile .go{position:absolute;right:10px;bottom:10px;width:30px;height:30px;border-radius:50%;background:var(--tint);display:grid;place-items:center}
+.tile .go svg{width:14px;height:14px}
+@media(max-width:560px){.tile{grid-template-columns:minmax(0,1fr);text-align:left;min-height:0;padding:10px 10px 12px}.tile .pic svg{height:78px}.tile b{font-size:20px}.tile small{font-size:13px}}
+/* telas internas */
+.mh{position:relative;background:radial-gradient(120% 120% at 30% -40%,#1d4f9a 0,var(--navy) 60%);color:#fff;padding:16px max(4vw,12px) 40px}
+.mh .in{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:48px minmax(0,1fr) 48px;align-items:center;gap:8px;position:relative;z-index:1}
+.mh h2{font-size:clamp(30px,6vw,42px);text-align:center}
+.mh p{margin:4px 0 0;color:#c9d6ec;text-align:center;font-size:15px}
+.ib{width:48px;height:48px;min-height:48px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;padding:0}
+.ib svg{width:24px;height:24px}
+.body{max-width:1100px;margin:0 auto;padding:4px max(4vw,12px) 30px}
+.grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px;align-items:start}
+@media(max-width:880px){.grid{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.card h3{font-size:22px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.hint{color:var(--mut);font-size:14px;margin:6px 0 0}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px 12px}
+label{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:600;color:var(--mut)}
+label.ck{flex-direction:row;align-items:center;gap:10px;color:var(--ink);font-weight:500;font-size:15px;min-height:44px}
+input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:light-dark(#f8fafd,#0e1828);border:1px solid var(--line);border-radius:10px;padding:9px 10px;min-height:44px;width:100%}
+input[type=checkbox]{width:22px;height:22px;min-height:0;accent-color:var(--or);flex:none}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--or);outline-offset:1px;border-color:transparent}
+button{font:inherit;font-weight:600;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;cursor:pointer}
+button:focus-visible{outline:2px solid var(--or);outline-offset:2px}
+button.pri{background:var(--or);border-color:var(--or);color:#fff}
+button.nv{background:var(--navy);border-color:var(--navy);color:#fff}
+button.add{border-style:dashed;margin-top:8px;width:100%;color:var(--navy2);background:var(--tint)}
+:root[data-theme=dark] button.add{color:#cfe0ff}
+button.x{min-height:40px;width:40px;padding:0;font-size:20px;color:var(--mut)}
+.big-btn svg{width:26px;height:26px}
+.big-btn{width:100%;min-height:58px;font-size:22px;font-family:"Barlow Condensed",sans-serif;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:10px;margin:4px 0 14px}
+/* seletor de peça */
+.seg{display:flex;gap:6px;overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px;margin:-26px 0 12px;position:relative;z-index:2;scrollbar-width:none;box-shadow:0 10px 24px -18px #0e2147}
+.seg::-webkit-scrollbar{display:none}
+.seg button{flex:1 0 88px;display:flex;flex-direction:column;align-items:center;gap:2px;border:0;border-radius:12px;background:transparent;padding:6px 6px 8px;font-size:15px;color:var(--ink);position:relative}
+.seg button svg{width:64px;height:40px}
+.seg button.on{background:var(--navy);color:#fff}
+.seg button.on::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:4px;border-radius:4px;background:var(--or)}
+.seg button.on svg{--it:#f4f7fb;--il:#cdd7e5;--ir:#a9b8cc;--sk:#0e2147}
+.artbox{background:radial-gradient(70% 70% at 50% 55%,var(--tint) 0,transparent 75%);border-radius:24px;margin-bottom:10px}
+.artbox svg{display:block;width:100%;height:auto;max-height:300px}
+.iso *{vector-effect:non-scaling-stroke}
+.iso text{font:600 15px Barlow,sans-serif;fill:var(--ink);stroke:none}
+.pc{border-top:1px solid var(--line);padding:12px 0 8px}
+.pc:first-of-type{border-top:0;padding-top:0}
+.pc .hd{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.pc .hd b{font:700 19px "Barlow Condensed",sans-serif;flex:none}
+.pc .hd input{flex:1}
+.dl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:center;gap:8px 12px;margin:6px 0}
+.dl span{font-size:16px;color:var(--ink)}
+.ig{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:light-dark(#f8fafd,#0e1828)}
+.ig input{border:0;border-radius:0;font-weight:700;font-size:18px;background:transparent}
+.ig input:focus{outline:none}.ig:focus-within{outline:2px solid var(--or);outline-offset:1px}
+.ig i{font-style:normal;display:grid;place-items:center;min-width:46px;padding:0 8px;background:var(--tint);color:var(--mut);font-weight:600;border-left:1px solid var(--line)}
+.pv{font-weight:700;color:var(--navy2);margin-top:4px}:root[data-theme=dark] .pv{color:#9cc2ff}
+/* resultado */
+.res{position:sticky;top:12px;background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 14px 30px -22px #0e2147}
+@media(max-width:880px){.res{position:static}}
+.rh{background:var(--navy);color:#fff;display:flex;align-items:center;gap:10px;padding:12px 16px;font:700 22px "Barlow Condensed",sans-serif}
+.rh svg{width:26px;height:26px;flex:none}
+.rb{padding:14px 16px 16px}
+.rb .cap{color:var(--mut);font-size:15px;font-weight:600}
+.rb .big{font:700 clamp(46px,9vw,64px)/1 "Barlow Condensed",sans-serif;color:var(--ink);margin:4px 0 12px;font-variant-numeric:tabular-nums}
+.rb .big small{font-size:.45em;margin-left:6px;color:var(--mut)}
+.chip{display:inline-flex;gap:8px;align-items:baseline;background:var(--tint);border-radius:12px;padding:8px 12px;margin:-4px 0 12px;font-size:14.5px;color:var(--mut)}
+.chip b{font:700 22px "Barlow Condensed",sans-serif;color:var(--ink)}
+.it{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:15.5px}
+.it span{color:var(--mut);flex:1 1 45%}.it b{text-align:right;font-variant-numeric:tabular-nums;flex:0 1 auto;max-width:62%}
+.it.s b{color:var(--ink);font-size:18px}.it.s span{color:var(--ink);font-weight:600}
+.rb h4{font:700 19px "Barlow Condensed",sans-serif;margin:16px 0 6px;display:flex;align-items:center;gap:8px}
+.rb .note,.rb>p{color:var(--mut);font-size:14px;margin:10px 0 0}
+.warn{color:var(--warn)}
+.mats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:14px;margin:6px 0 4px}
+.mats div{text-align:center;padding:10px 4px;border-left:1px solid var(--line)}.mats div:first-child{border-left:0}
+.mats svg{width:56px;height:40px;display:block;margin:0 auto 2px}
+.mats span{display:block;font-size:14px;color:var(--mut)}.mats b{display:block;font:700 22px/1.1 "Barlow Condensed",sans-serif}
+.mats small{display:block;color:var(--mut);font-size:12.5px}
+.extra{font-size:14px;color:var(--mut);margin:6px 0 0}
+.pat{background:var(--tint);border-radius:10px;padding:8px 10px;margin:6px 0;font-size:14.5px}.pat b{color:var(--warn)}
+.acts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}
+.acts button{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:14px}
+.acts button svg{width:20px;height:20px}
+.acts .full{grid-column:1/-1}
+.acts .ol{border:2px solid var(--navy);color:var(--navy);background:transparent}:root[data-theme=dark] .acts .ol{border-color:#9cc2ff;color:#cfe0ff}
+.savebox{margin-top:10px}.savebox .row{display:flex;gap:8px}.savebox .row input{flex:1}
+.toast{color:var(--ok,#1f7a4d);font-size:14px;margin:8px 0 0;min-height:1em}
+.copybox{width:100%;min-height:140px;margin-top:10px;font-size:14px}
+/* tabelas de linhas */
+.rt{width:100%;border-collapse:collapse;table-layout:fixed}
+.rt th{font-size:12.5px;color:var(--mut);text-align:left;font-weight:600;padding:0 3px 4px;line-height:1.2}
+.rt td{padding:3px}.rt input{padding:8px 6px}
+.rt .rv{font-size:13px;color:var(--mut);text-align:right;white-space:nowrap}
+.rt th:last-child,.rt td:last-child{width:44px}.rt th.vc,.rt td.rv{width:70px}.rt th.tx,.rt td.tx{width:24%}
+.ml{display:none}
+@media(max-width:600px){.rt thead{display:none}.rt,.rt tbody{display:block}.rt tr{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:10px 0;border-bottom:1px solid var(--line)}.rt td,.rt td:last-child,.rt td.tx,.rt td.rv{width:auto;padding:0}.rt td.tx{grid-column:1/-2}.rt td.rv{grid-column:1/-2;text-align:left;font-weight:600;color:var(--ink);align-self:center}.rt td.rv:not(:empty)::before{content:"= "}.rt td:last-child{grid-column:-2/-1;grid-row:1;justify-self:end;align-self:end}.ml{display:block;font-size:12.5px;color:var(--mut);font-weight:600;margin-bottom:2px}.rt input{padding:8px}}
+/* traços, pintura, histórico */
+.tr-list{display:grid;gap:10px}
+.tr{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--card)}
+.tr h4{margin:0;font:700 20px "Barlow Condensed",sans-serif}
+.tr .tag{display:inline-block;font-size:12.5px;font-weight:600;background:var(--tint);color:var(--navy2);border-radius:20px;padding:2px 9px;margin-left:6px;vertical-align:2px}
+:root[data-theme=dark] .tr .tag{color:#9cc2ff}
+.tr p{margin:4px 0;font-size:15px}.tr .m{color:var(--mut);font-size:14px}
+.tr .b{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.tr pre{white-space:pre-wrap;font:14px/1.45 Barlow,sans-serif;background:var(--tint);border-radius:10px;padding:10px;margin:8px 0 0}
+.tr .hb{font:700 26px "Barlow Condensed",sans-serif}
+.status{font-size:14px;color:var(--mut);margin:0 0 10px}.status.err{color:var(--warn)}
+.prod{display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:10px;align-items:center;border-top:1px solid var(--line);padding:6px 0}
+.prod .m{display:block;color:var(--mut);font-size:13px;font-weight:400}
+.prod input[type=text]{text-align:center}
+details{margin-top:6px}summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center}
+.ttab{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:6px}
+.ttab th,.ttab td{padding:6px 4px;border-top:1px solid var(--line);text-align:right;white-space:nowrap}
+.ttab th:first-child,.ttab td:first-child{text-align:left}.ttab th{color:var(--mut);font-weight:600}
+.ttab tr.best td{color:var(--warn);font-weight:700}
+.scroll{overflow-x:auto}
+.empty{color:var(--mut);border:1px dashed var(--line);border-radius:12px;padding:16px;text-align:center}
+/* barra inferior */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--navy);display:flex;justify-content:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom));border-radius:18px 18px 0 0;box-shadow:0 -8px 24px -16px #000}
+.nav a{flex:1;max-width:180px;display:flex;flex-direction:column;align-items:center;gap:2px;color:#c9d6ec;text-decoration:none;font-size:14px;font-weight:600;padding:6px 4px 8px;border-radius:12px;position:relative;min-height:56px}
+.nav a svg{width:26px;height:26px}
+.nav a.on{color:var(--or)}.nav a.on::after{content:"";position:absolute;bottom:0;left:22%;right:22%;height:3px;border-radius:3px;background:var(--or)}
+.nav a:focus-visible{outline:2px solid var(--or)}
+@media(prefers-reduced-motion:no-preference){.pane.on{animation:fi .2s ease-out}@keyframes fi{from{opacity:.3;transform:translateY(6px)}to{opacity:1;transform:none}}}
+
+.artbox.mini svg{max-height:130px;width:auto;margin:6px auto 0}
+.acts button{white-space:nowrap}
+
+.fields.f3{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.fields .ig{font-weight:400}.fields .ig input{font-size:16px;font-weight:600}
+.seg button .n{position:absolute;top:4px;right:8px;min-width:20px;height:20px;border-radius:10px;background:var(--or);color:#fff;font-size:12px;line-height:20px;padding:0 5px}
+.lst{display:grid;gap:6px}
+.lst button{display:flex;justify-content:space-between;gap:10px;text-align:left;font-weight:500;background:var(--tint);border:0}
+.lst button b{white-space:nowrap}
+.tot{display:flex;justify-content:space-between;gap:10px;font:700 22px "Barlow Condensed",sans-serif;border-top:2px solid var(--navy);margin-top:10px;padding-top:8px}
+.tot span:last-child{white-space:nowrap}
+.fc{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px 10px;margin-top:8px}
+@media(max-width:560px){.fc{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.fc label{font-size:13px;gap:3px}
+.fc .ig input{font-size:17px;padding:8px 8px;min-height:42px}.fc .ig i{min-width:36px;font-size:13.5px}
+.fc select{min-height:44px}
+.pf .pfh{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center}
+.pf .pfh h3{margin:0;font-size:21px}
+.pf.ed{border:2px solid var(--or)}
+.pf details summary{font-size:14px;color:var(--mut);min-height:40px}
+.pfv{background:var(--tint);border-radius:10px;padding:9px 12px;margin-top:10px;font-size:15px;color:var(--mut)}.pfv b{color:var(--ink)}
+.pfb{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:10px}
+.pfb button{min-height:50px;font-size:17px;border-radius:12px}
+.toast.warn{color:var(--warn)}
+.li{display:grid;grid-template-columns:minmax(0,1fr) auto 40px 40px;align-items:center;gap:6px;background:var(--tint);border-radius:12px;padding:6px 6px 6px 12px;border:2px solid transparent}
+.li small{display:block;color:var(--mut);font-size:13px}.li .v{white-space:nowrap;font-size:16px}
+.li.on{border-color:var(--or)}
+@media(prefers-reduced-motion:no-preference){.li.new{animation:fl 1.6s ease-out}@keyframes fl{0%{border-color:var(--or);background:light-dark(#ffe9d2,#4a3016)}100%{border-color:transparent}}}
+.sumbar{position:fixed;left:8px;right:8px;bottom:calc(74px + env(safe-area-inset-bottom));z-index:19;max-width:760px;margin:0 auto;display:flex;align-items:center;gap:10px;background:var(--card);border:2px solid var(--navy);border-radius:16px;padding:8px 8px 8px 14px;box-shadow:0 10px 28px -12px rgba(14,33,71,.55)}
+.sumbar[hidden]{display:none}
+.sumbar span{flex:1;display:flex;flex-direction:column;line-height:1.15}
+.sumbar small{color:var(--mut);font-size:12.5px}.sumbar b{font:700 24px "Barlow Condensed",sans-serif}.sumbar b i{font-style:normal;font-size:15px;color:var(--mut)}
+.sumbar button{background:var(--navy);color:#fff;border:0;min-height:46px;white-space:nowrap}
+body.hasbar{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+#concArt svg{max-height:190px}
+
+.inst{margin-top:14px;background:var(--or);border:0;color:#fff;border-radius:12px}
+.inst[hidden]{display:none}
+
+</style></head><body>
+<section class="pane" id="p-inicio"><header class="hero"><div class="in"><div><img src="data:image/png;base64,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" alt="Luparo Engenharia e Construção"><h1>Calculadora de <em>Obra</em></h1><p>Do traço ao telhado: a conta certa da obra, na palma da mão.</p><button class="inst" id="instBtn" hidden>Instalar no computador</button></div><div id="bld"></div></div><svg class="curve" viewBox="0 0 400 46" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30Q200 -6 400 22V46H0Z" fill="var(--bg)"/><path d="M0 30Q120 8 230 10" stroke="#f58a1f" stroke-width="4" fill="none"/></svg></header>
+<div class="wrap"><h3 class="sec">O que você vai calcular?</h3><div id="home"></div></div></section><section class="pane" id="p-concreto"><header class="mh"><div class="in"><button class="ib" data-back aria-label="Voltar"><span data-ic="back"></span></button><div><h2>Concreto</h2><p>Calcule o volume e os materiais necessários</p></div><button class="ib" data-go="inicio" aria-label="Início"><span data-ic="home"></span></button></div><svg class="curve" viewBox="0 0 400 46" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30Q200 -6 400 22V46H0Z" fill="var(--bg)"/><path d="M0 30Q120 8 230 10" stroke="#f58a1f" stroke-width="4" fill="none"/></svg></header><div class="body">
+<nav class="seg" id="seg" aria-label="Tipo de peça"></nav>
+<div class="grid"><div>
+ <div class="artbox" id="concArt"></div>
+ <div id="pf-conc"></div>
+ <div class="card"><h3>Peças lançadas</h3><div id="pl-conc"></div></div>
+ <div class="card"><div class="fields"><label>Perda de concreto (%)<input data-s="perdaC" value="10" inputmode="decimal"></label><label style="grid-column:span 2">Traço para os materiais<select data-s="concTraco" id="concTraco"></select></label></div></div>
+ <button class="pri big-btn" data-calc="concreto"><span data-ic="calc"></span>Calcular</button>
+</div><aside class="res" id="res-concreto"><div class="rh"><span data-ic="ok"></span>Resultado</div><div class="rb"><div id="r-concreto"></div>
+<div class="acts"><button class="pri full" data-send="concreto">Calcular betoneiras</button><button class="full" data-clear="conc">Limpar peças</button><button class="ol" data-save="concreto"><span data-ic="save"></span>Salvar cálculo</button><button class="nv" data-share="concreto"><span data-ic="share"></span>Compartilhar</button></div><div class="savebox" id="sv-concreto"></div><div id="cb-concreto"></div></div></aside></div></div></section><section class="pane" id="p-estribos"><header class="mh"><div class="in"><button class="ib" data-back aria-label="Voltar"><span data-ic="back"></span></button><div><h2>Estribos</h2><p>Quantidade, corte e peso da armadura</p></div><button class="ib" data-go="inicio" aria-label="Início"><span data-ic="home"></span></button></div><svg class="curve" viewBox="0 0 400 46" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30Q200 -6 400 22V46H0Z" fill="var(--bg)"/><path d="M0 30Q120 8 230 10" stroke="#f58a1f" stroke-width="4" fill="none"/></svg></header><div class="body"><div class="grid"><div><div class="artbox mini" data-art="estribos"></div><div id="pf-est"></div><div class="card"><h3>Peças lançadas</h3><div id="pl-est"></div></div>
+<div class="card"><div class="fields"><label>Barra comercial (m)<input data-s="eBarra" value="12" inputmode="decimal"></label></div><p class="hint">Peça maior que a barra precisa de emenda por transpasse: some o transpasse ao comprimento da peça.</p></div></div><aside class="res" id="res-estribos"><div class="rh"><span data-ic="ok"></span>Resultado</div><div class="rb"><div id="r-estribos"></div>
+<div class="acts"><button class="pri full" data-send="estribos">Mandar para o corte</button><button class="ol" data-save="estribos"><span data-ic="save"></span>Salvar cálculo</button><button class="nv" data-share="estribos"><span data-ic="share"></span>Compartilhar</button></div><div class="savebox" id="sv-estribos"></div><div id="cb-estribos"></div></div></aside></div></div></section><section class="pane" id="p-corte"><header class="mh"><div class="in"><button class="ib" data-back aria-label="Voltar"><span data-ic="back"></span></button><div><h2>Corte de ferragem</h2><p>Plano de corte nas barras de 12 m</p></div><button class="ib" data-go="inicio" aria-label="Início"><span data-ic="home"></span></button></div><svg class="curve" viewBox="0 0 400 46" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30Q200 -6 400 22V46H0Z" fill="var(--bg)"/><path d="M0 30Q120 8 230 10" stroke="#f58a1f" stroke-width="4" fill="none"/></svg></header><div class="body"><div class="grid"><div><div class="artbox mini" data-art="corte"></div>
+  <div class="card"><h3>Peças</h3><div id="rows-corte"></div></div>
+  <div class="card"><div class="fields"><label>Barra comercial (m)<input data-s="cBar" value="12" inputmode="decimal"></label><label>Sobra aproveitável a partir de (cm)<input data-s="cSobra" value="50" inputmode="decimal"></label></div></div>
+ </div><aside class="res" id="res-corte"><div class="rh"><span data-ic="ok"></span>Resultado</div><div class="rb"><div id="r-corte"></div>
+<div class="acts"><button class="full" data-clear="corte">Limpar</button><button class="ol" data-save="corte"><span data-ic="save"></span>Salvar cálculo</button><button class="nv" data-share="corte"><span data-ic="share"></span>Compartilhar</button></div><div class="savebox" id="sv-corte"></div><div id="cb-corte"></div></div></aside></div></div></section><section class="pane" id="p-blocos"><header class="mh"><div class="in"><button class="ib" data-back aria-label="Voltar"><span data-ic="back"></span></button><div><h2>Alvenaria</h2><p>Blocos por m², canaletas e argamassa</p></div><button class="ib" data-go="inicio" aria-label="Início"><span data-ic="home"></span></button></div><svg class="curve" viewBox="0 0 400 46" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30Q200 -6 400 22V46H0Z" fill="var(--bg)"/><path d="M0 30Q120 8 230 10" stroke="#f58a1f" stroke-width="4" fill="none"/></svg></header><div class="body"><div class="grid"><div><div class="artbox mini" data-art="blocos"></div>
+  <div class="card"><h3>Paredes</h3><div id="rows-parede"></div></div>
+  <div class="card"><h3>Vãos a descontar</h3><div id="rows-vao"></div></div>
+  <div class="card"><h3>Bloco</h3><div class="fields">
+   <label style="grid-column:1/-1">Tipo<select data-s="bTipo" id="bTipo"></select></label>
+   <label>Comprimento (cm)<input data-s="bL" value="39" inputmode="decimal"></label>
+   <label>Altura (cm)<input data-s="bH" value="19" inputmode="decimal"></label>
+   <label>Largura (cm)<input data-s="bE" value="14" inputmode="decimal"></label>
+   <label>Junta (cm)<input data-s="bJ" value="1" inputmode="decimal"></label>
+   <label>Perda (%)<input data-s="bP" value="5" inputmode="decimal"></label>
+   <label>Cintas/vergas (m)<input data-s="bCinta" value="40" inputmode="decimal"></label>
+   <label>Preenchimento da junta (%)<input data-s="bFat" value="70" inputmode="decimal"></label>
+  </div><p class="hint">Escolher o tipo preenche as medidas. Preenchimento: 100% em bloco de vedação; 60–70% em bloco estrutural, que leva argamassa só nas paredes do bloco.</p></div>
+ </div><aside class="res" id="res-blocos"><div class="rh"><span data-ic="ok"></span>Resultado</div><div class="rb"><div id="r-blocos"></div>
+<div class="acts"><button class="pri full" data-send="blocos">Argamassa na betoneira</button><button class="ol" data-save="blocos"><span data-ic="save"></span>Salvar cálculo</button><button class="nv" data-share="blocos"><span data-ic="share"></span>Compartilhar</button></div><div class="savebox" id="sv-blocos"></div><div id="cb-blocos"></div></div></aside></div></div></section><section class="pane" id="p-betoneira"><header class="mh"><div class="in"><button class="ib" data-back aria-label="Voltar"><span data-ic="back"></span></button><div><h2>Betoneira</h2><p>Betonadas pelo traço, em baldes de 18 L</p></div><button class="ib" data-go="inicio" aria-label="Início"><span data-ic="home"></span></button></div><svg class="curve" viewBox="0 0 400 46" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30Q200 -6 400 22V46H0Z" fill="var(--bg)"/><path d="M0 30Q120 8 230 10" stroke="#f58a1f" stroke-width="4" fill="none"/></svg></header><div class="body"><div class="grid"><div><div class="artbox mini" data-art="betoneira"></div>
+  <div class="card"><div class="fields">
+   <label style="grid-column:1/-1">Traço<select data-s="betTraco" id="betTraco"></select></label>
+   <label>Volume necessário (m³)<input data-s="betVol" value="3" inputmode="decimal"></label>
+   <label>Sacos de cimento por betonada<select data-s="betSpb"><option value="0.5">½ saco (betoneira 150–250 L)</option><option value="1" selected>1 saco (betoneira 400 L)</option><option value="1.5">1½ saco (betoneira 500–600 L)</option><option value="2">2 sacos (betoneira 600 L+)</option></select></label>
+  </div><p class="hint">O volume pode vir pronto da Cubicagem ou dos Blocos pelo botão laranja de cada aba.</p></div>
+  <div class="card"><h3>Uma betonada leva</h3><div id="betUma"></div></div>
+ </div><aside class="res" id="res-betoneira"><div class="rh"><span data-ic="ok"></span>Resultado</div><div class="rb"><div id="r-betoneira"></div>
+<div class="acts"><button class="full" data-go="tracos">Ver traços</button><button class="ol" data-save="betoneira"><span data-ic="save"></span>Salvar cálculo</button><button class="nv" data-share="betoneira"><span data-ic="share"></span>Compartilhar</button></div><div class="savebox" id="sv-betoneira"></div><div id="cb-betoneira"></div></div></aside></div></div></section><section class="pane" id="p-pintura"><header class="mh"><div class="in"><button class="ib" data-back aria-label="Voltar"><span data-ic="back"></span></button><div><h2>Pintura</h2><p>Tinta, seladora, massa corrida e grafiato</p></div><button class="ib" data-go="inicio" aria-label="Início"><span data-ic="home"></span></button></div><svg class="curve" viewBox="0 0 400 46" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30Q200 -6 400 22V46H0Z" fill="var(--bg)"/><path d="M0 30Q120 8 230 10" stroke="#f58a1f" stroke-width="4" fill="none"/></svg></header><div class="body"><div class="grid"><div><div class="artbox mini" data-art="pintura"></div>
+  <div class="card"><h3>Ambientes</h3><p class="hint" style="margin:0 0 8px">Área de cada ambiente = perímetro × pé-direito + teto − vãos. Lance quantos quiser; o total soma todos.</p><div id="rows-pamb"></div>
+<div class="fields" style="margin-top:12px"><label>Área extra direta (m²)<input data-s="pArea" value="" placeholder="opcional" inputmode="decimal"></label><label>Perda (%)<input data-s="pPerda" value="10" inputmode="decimal"></label></div></div>
+<div class="card"><h3>Produtos e demãos</h3><div id="pList"></div>
+   <details><summary>Cadastro de produtos e rendimentos</summary>
+    <p class="status" id="prStatus"></p>
+    <div id="prList"></div>
+    <div class="fields" style="margin-top:10px">
+     <label style="grid-column:1/-1">Produto<input type="text" id="pf-nome" placeholder="Ex.: Tinta acrílica Suvinil fosco"></label>
+     <label>Unidade<select id="pf-un"><option>L</option><option>kg</option></select></label>
+     <label>Rendimento (m² por L ou kg, por demão)<input id="pf-rend" inputmode="decimal"></label>
+     <label>Demãos padrão<input id="pf-dem" value="2" inputmode="decimal"></label>
+     <label>Embalagem grande<input id="pf-e1" value="18" inputmode="decimal"></label>
+     <label>Nome da grande<input type="text" id="pf-e1n" value="lata 18 L"></label>
+     <label>Embalagem pequena<input id="pf-e2" value="3.6" inputmode="decimal"></label>
+     <label>Nome da pequena<input type="text" id="pf-e2n" value="galão 3,6 L"></label>
+    </div>
+    <p class="status err" id="pf-err"></p>
+    <div class="acts"><button class="pri" id="pf-save">Salvar produto</button><button id="pf-new">Novo</button></div>
+   </details>
+  </div>
+ </div><aside class="res" id="res-pintura"><div class="rh"><span data-ic="ok"></span>Resultado</div><div class="rb"><div id="r-pintura"></div>
+<div class="acts"><button class="ol" data-save="pintura"><span data-ic="save"></span>Salvar cálculo</button><button class="nv" data-share="pintura"><span data-ic="share"></span>Compartilhar</button></div><div class="savebox" id="sv-pintura"></div><div id="cb-pintura"></div></div></aside></div></div></section><section class="pane" id="p-piso"><header class="mh"><div class="in"><button class="ib" data-back aria-label="Voltar"><span data-ic="back"></span></button><div><h2>Pisos cerâmicos</h2><p>Caixas, argamassa, rejunte e nivelador</p></div><button class="ib" data-go="inicio" aria-label="Início"><span data-ic="home"></span></button></div><svg class="curve" viewBox="0 0 400 46" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30Q200 -6 400 22V46H0Z" fill="var(--bg)"/><path d="M0 30Q120 8 230 10" stroke="#f58a1f" stroke-width="4" fill="none"/></svg></header><div class="body"><div class="grid"><div><div class="artbox mini" data-art="cer"></div>
+  <div class="card"><h3>Ambientes</h3><div id="rows-amb"></div></div>
+  <div class="card"><h3>Peça</h3><div class="fields">
+   <label>Comprimento (cm)<input data-s="rPC" value="60" inputmode="decimal"></label>
+   <label>Largura (cm)<input data-s="rPL" value="60" inputmode="decimal"></label>
+   <label>Espessura (mm)<input data-s="rE" value="8" inputmode="decimal"></label>
+   <label>m² por caixa<input data-s="rCx" value="1.44" inputmode="decimal"></label>
+   <label>Junta (mm)<input data-s="rJ" value="2" inputmode="decimal"></label>
+   <label>Perda (%)<input data-s="rPerda" value="10" inputmode="decimal"></label>
+  </div><p class="hint">Perda: 10% assentamento reto, 15% diagonal ou muitos recortes.</p></div>
+  <div class="card"><h3>Argamassa e rejunte</h3><div class="fields">
+   <label>Consumo argamassa (kg/m²)<input data-s="rCons" value="" placeholder="automático" inputmode="decimal"></label>
+   <label>Saco de argamassa (kg)<input data-s="rSaco" value="20" inputmode="decimal"></label>
+   <label>Embalagem rejunte (kg)<input data-s="rRej" value="1" inputmode="decimal"></label>
+  </div></div>
+  <div class="card"><h3>Nivelador e espaçador</h3>
+   <label class="ck"><input type="checkbox" data-s="rNiv" checked> Usar sistema nivelador (clipe + cunha)</label>
+   <div class="fields">
+    <label>Distância máx. entre clipes (cm)<input data-s="rNs" value="30" inputmode="decimal"></label>
+    <label>Área assentada por dia (m²)<input data-s="rDia" value="25" inputmode="decimal"></label>
+   </div><p class="hint">A cunha é reaproveitada: a quantidade cobre um dia de assentamento. O clipe é perdido em cada peça.</p></div>
+ </div><aside class="res" id="res-piso"><div class="rh"><span data-ic="ok"></span>Resultado</div><div class="rb"><div id="r-piso"></div>
+<div class="acts"><button class="ol" data-save="piso"><span data-ic="save"></span>Salvar cálculo</button><button class="nv" data-share="piso"><span data-ic="share"></span>Compartilhar</button></div><div class="savebox" id="sv-piso"></div><div id="cb-piso"></div></div></aside></div></div></section><section class="pane" id="p-telhado"><header class="mh"><div class="in"><button class="ib" data-back aria-label="Voltar"><span data-ic="back"></span></button><div><h2>Telhado</h2><p>Telhas por m² e tamanhos padrão</p></div><button class="ib" data-go="inicio" aria-label="Início"><span data-ic="home"></span></button></div><svg class="curve" viewBox="0 0 400 46" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30Q200 -6 400 22V46H0Z" fill="var(--bg)"/><path d="M0 30Q120 8 230 10" stroke="#f58a1f" stroke-width="4" fill="none"/></svg></header><div class="body"><div class="grid"><div><div class="artbox mini" data-art="telhado"></div>
+  <div class="card"><h3>Telha</h3><div class="fields">
+   <label style="grid-column:1/-1">Tipo<select data-s="tTipo" id="tTipo"></select></label>
+   <label>Peças por m²<input data-s="tPm2" value="" placeholder="padrão do tipo" inputmode="decimal"></label>
+   <label>Perda (%)<input data-s="tPerda" value="5" inputmode="decimal"></label>
+   <label>Recobrimento chapa (cm)<input data-s="tRec" value="14" inputmode="decimal"></label>
+   <label>Largura útil chapa (m)<input data-s="tUtil" value="" placeholder="padrão do tipo" inputmode="decimal"></label>
+  </div></div>
+  <div class="card"><h3>Medidas</h3><div class="fields">
+   <label style="grid-column:1/-1">Como informar<select data-s="tModo"><option value="dim">Comprimento e água</option><option value="area">Área em planta (m²)</option></select></label>
+   <label>Comprimento do telhado (m)<input data-s="tComp" value="10" inputmode="decimal"></label>
+   <label>Projeção de cada água (m)<input data-s="tProj" value="4" inputmode="decimal"></label>
+   <label>Nº de águas<select data-s="tAguas"><option>1</option><option selected>2</option></select></label>
+   <label>Área em planta (m²)<input data-s="tArea" value="" inputmode="decimal"></label>
+   <label>Inclinação (%)<input data-s="tInc" value="30" inputmode="decimal"></label>
+   <label>Cumeeira/espigão (m)<input data-s="tCum" value="" placeholder="automático" inputmode="decimal"></label>
+  </div><p class="hint">Projeção = distância horizontal da cumeeira até a ponta do beiral. Para 3 ou 4 águas, informe a área em planta e a cumeeira + espigões.</p></div>
+ <div class="card"><h3>Madeiramento e fixação</h3><div class="fields">
+ <label>Galga das ripas (cm)<input data-s="tGalga" value="" placeholder="padrão do tipo" inputmode="decimal"></label>
+ <label>Espaçamento dos caibros (cm)<input data-s="tCaib" value="50" inputmode="decimal"></label>
+ <label>Vão entre terças (m)<input data-s="tTerca" value="" placeholder="padrão do tipo" inputmode="decimal"></label>
+ <label>Parafusos por chapa<input data-s="tParT" value="4" inputmode="decimal"></label>
+ <label>Parafusos por m² (metálica)<input data-s="tParM2" value="4" inputmode="decimal"></label>
+ <label>Perda da madeira (%)<input data-s="tPerdaM" value="10" inputmode="decimal"></label>
+</div><p class="hint">Telha cerâmica e de concreto: ripa, caibro e terça. Fibrocimento e metálica: só terças, com parafusos e conjunto de vedação. Valores de referência: confira com o projeto e o fabricante.</p></div></div><aside class="res" id="res-telhado"><div class="rh"><span data-ic="ok"></span>Resultado</div><div class="rb"><div id="r-telhado"></div>
+<div class="acts"><button class="ol" data-save="telhado"><span data-ic="save"></span>Salvar cálculo</button><button class="nv" data-share="telhado"><span data-ic="share"></span>Compartilhar</button></div><div class="savebox" id="sv-telhado"></div><div id="cb-telhado"></div></div></aside></div></div></section><section class="pane" id="p-tracos"><header class="mh"><div class="in"><button class="ib" data-back aria-label="Voltar"><span data-ic="back"></span></button><div><h2>Traços</h2><p>Padrão Luparo por saco e balde</p></div><button class="ib" data-go="inicio" aria-label="Início"><span data-ic="home"></span></button></div><svg class="curve" viewBox="0 0 400 46" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30Q200 -6 400 22V46H0Z" fill="var(--bg)"/><path d="M0 30Q120 8 230 10" stroke="#f58a1f" stroke-width="4" fill="none"/></svg></header><div class="body"><div class="artbox mini" data-art="tracos"></div><div class="grid"><div>
+  <p class="status" id="dbStatus">Conectando ao banco de traços…</p>
+  <div class="tr-list" id="trList"></div>
+  <div id="trSeed"></div>
+ </div><div>
+  <div class="card" id="trForm"><h3 id="tfTitle">Novo traço</h3>
+   <div class="fields">
+    <label style="grid-column:1/-1">Nome<input type="text" id="tf-nome" placeholder="Ex.: Concreto baldrame 20 MPa"></label>
+    <label>Tipo<select id="tf-tipo"><option>Concreto</option><option>Argamassa</option><option>Contrapiso</option><option>Chapisco</option><option>Graute</option></select></label>
+    <label style="grid-column:span 2">Uso<input type="text" id="tf-uso" placeholder="Onde usar"></label>
+    <label>Cimento (sacos 50 kg)<input id="tf-cim" value="1" inputmode="decimal"></label>
+    <label>Cal (sacos 20 kg)<input id="tf-cal" value="0" inputmode="decimal"></label>
+    <label>Areia (baldes 18 L)<input id="tf-are" value="4" inputmode="decimal"></label>
+    <label>Brita (baldes 18 L)<input id="tf-bri" value="6" inputmode="decimal"></label>
+    <label>Água (litros)<input id="tf-agu" value="27" inputmode="decimal"></label>
+    <label>Rendimento medido (L)<input id="tf-ren" placeholder="automático" inputmode="decimal"></label>
+   </div>
+   <h3 style="font-size:19px;margin:14px 0 6px">Aditivos por massada</h3>
+   <div id="tf-ads"></div>
+   <p class="hint" id="tf-auto"></p>
+   <p class="status err" id="tf-err"></p>
+   <div class="acts"><button class="pri" id="tf-save">Salvar traço</button><button id="tf-new">Novo</button></div>
+  </div>
+ </div></div></div></section><section class="pane" id="p-historico"><header class="mh"><div class="in"><button class="ib" data-back aria-label="Voltar"><span data-ic="back"></span></button><div><h2>Histórico</h2><p>Cálculos salvos da equipe</p></div><button class="ib" data-go="inicio" aria-label="Início"><span data-ic="home"></span></button></div><svg class="curve" viewBox="0 0 400 46" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30Q200 -6 400 22V46H0Z" fill="var(--bg)"/><path d="M0 30Q120 8 230 10" stroke="#f58a1f" stroke-width="4" fill="none"/></svg></header><div class="body"><p class="status" id="histSt"></p><div class="tr-list" id="histList"></div></div></section>
+<div class="sumbar" id="sumbar" hidden><span id="sbT"></span><button id="sbGo">Ver resultado</button></div>
+<nav class="nav" aria-label="Navegação"><a href="#inicio"><span data-ic="home"></span>Início</a><a href="#historico"><span data-ic="hist"></span>Histórico</a><a href="#tracos"><span data-ic="traco"></span>Traços</a></nav>
+<script>
+{
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const num=v=>{const n=parseFloat(String(v??'').replace(/\s/g,'').replace(',','.'));return isFinite(n)?n:0};
+const f=(n,d=2)=>(isFinite(n)?n:0).toLocaleString('pt-BR',{maximumFractionDigits:d});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ceil=x=>Math.ceil(x-1e-9);
+const kgm=d=>0.006165*d*d;
+const BALDE=18;
+
+/* ---------- linhas editáveis ---------- */
+const ROWS={
+ conc:{cols:[],def:null,val:r=>volConc(r),u:'m³'},
+ est:{cols:[],def:{desc:'',c:'',q:'1',b:'15',h:'30',cob:'3',s:'15',phi:'5.0',g:'5',nl:'4',pl:'10.0',anc:'20'},val:r=>0,u:'est'},
+ pamb:{cols:[['desc','Ambiente','t'],['per','Perím. (m)'],['pd','Pé-dir. (m)'],['teto','Teto (m²)'],['vaos','Vãos (m²)'],['q','Qtd']],def:{desc:'',per:'',pd:'2.8',teto:'0',vaos:'0',q:'1'},val:r=>Math.max(0,num(r.per)*num(r.pd)+num(r.teto)-num(r.vaos))*num(r.q),u:'m²'},
+ corte:{cols:[['desc','Peça','t'],['phi','φ (mm)'],['comp','Compr. (cm)'],['q','Qtd']],def:{desc:'',phi:'10',comp:'',q:'1'},val:r=>num(r.comp)/100*num(r.q)*kgm(num(r.phi)),u:'kg'},
+ parede:{cols:[['desc','Parede','t'],['c','Compr. (m)'],['h','Alt. (m)'],['q','Qtd']],def:{desc:'',c:'',h:'2.8',q:'1'},val:r=>num(r.c)*num(r.h)*num(r.q),u:'m²'},
+ vao:{cols:[['desc','Vão','t'],['l','Larg. (m)'],['h','Alt. (m)'],['q','Qtd']],def:{desc:'',l:'0.8',h:'2.1',q:'1'},val:r=>num(r.l)*num(r.h)*num(r.q),u:'m²'},
+ amb:{cols:[['desc','Ambiente','t'],['c','Compr. (m)'],['l','Larg. (m)'],['q','Qtd']],def:{desc:'',c:'',l:'',q:'1'},val:r=>num(r.c)*num(r.l)*num(r.q),u:'m²'}
+};
+const SAMPLE={
+ corte:[{desc:'Viga V1',phi:'10',comp:'420',q:'8'},{desc:'Viga V2',phi:'10',comp:'310',q:'8'},{desc:'Arranque',phi:'10',comp:'150',q:'12'}],
+ parede:[{desc:'Paredes externas',c:'32',h:'2.8',q:'1'},{desc:'Paredes internas',c:'18',h:'2.8',q:'1'}],
+ vao:[{desc:'Portas',l:'0.8',h:'2.1',q:'5'},{desc:'Janelas',l:'1.2',h:'1.0',q:'4'}],
+ amb:[{desc:'Sala e cozinha',c:'6',l:'5',q:'1'},{desc:'Quartos',c:'3',l:'3',q:'2'}]
+};
+let S={v:{},rows:{}};
+try{const j=JSON.parse(localStorage.getItem('luparo-calc-v1')||'null');if(j&&j.v&&j.rows)S=j}catch(e){}
+for(const k in ROWS) if(!Array.isArray(S.rows[k])) S.rows[k]=JSON.parse(JSON.stringify(SAMPLE[k]||(ROWS[k].def?[ROWS[k].def]:[])));
+if(!S.v.pSel||typeof S.v.pSel!=='object') S.v.pSel={};
+let saveT;const save=()=>{clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem('luparo-calc-v1',JSON.stringify(S))}catch(e){}},300)};
+const V=k=>S.v[k], N=k=>num(S.v[k]);
+
+function renderRows(key){
+ if(key==='conc')return renderConc();
+ if(key==='est')return renderPF('est'),renderList('est');
+ const R=ROWS[key],box=$('#rows-'+key);if(!box)return;
+ box.innerHTML=`<table class="rt"><thead><tr>${R.cols.map(c=>`<th class="${c[2]?'tx':''}">${c[1]}</th>`).join('')}<th class="vc">${R.u}</th><th></th></tr></thead><tbody>${S.rows[key].map((r,i)=>`<tr>${R.cols.map(c=>`<td class="${c[2]?'tx':''}"><span class="ml">${c[1]}</span><input ${c[2]?'type="text"':'inputmode="decimal"'} data-k="${key}" data-i="${i}" data-f="${c[0]}" value="${esc(r[c[0]])}" aria-label="${c[1]} linha ${i+1}"></td>`).join('')}<td class="rv" id="rv-${key}-${i}"></td><td><button class="x" data-del="${key}" data-i="${i}" aria-label="Remover linha ${i+1}">×</button></td></tr>`).join('')}</tbody></table><button class="add" data-add="${key}">+ Adicionar linha</button>`;
+}
+const sum=key=>S.rows[key].reduce((a,r)=>a+(ROWS[key].val(r)||0),0);
+function rowVals(){for(const k in ROWS)if(k!=='est')S.rows[k].forEach((r,i)=>{const el=$('#rv-'+k+'-'+i);if(el)el.textContent=f(ROWS[k].val(r),k==='corte'?1:3)+' '+ROWS[k].u})}
+
+/* ---------- desenhos isométricos ---------- */
+function ISO(){
+ const sh=[],pts=[],C=.866,K=4;
+ const P=(x,y,z)=>{const p=[(x-y)*C*K,(x+y)*.5*K-z*K];pts.push(p);return p};
+ const fx=n=>n.toFixed(1);
+ const poly=(ps,fill,ex='')=>sh.push(`<polygon points="${ps.map(p=>fx(p[0])+','+fx(p[1])).join(' ')}" fill="${fill}" ${ex}/>`);
+ const line=(a,b,st,w=1.4,ex='')=>sh.push(`<path d="M${fx(a[0])} ${fx(a[1])}L${fx(b[0])} ${fx(b[1])}" stroke="${st}" stroke-width="${w}" fill="none" ${ex}/>`);
+ const G=['var(--gt)','var(--gl)','var(--gr)'];
+ function box(x,y,z,w,d,h,f){f=f||['var(--it)','var(--il)','var(--ir)'];
+  poly([P(x,y+d,z),P(x+w,y+d,z),P(x+w,y+d,z+h),P(x,y+d,z+h)],f[1]);
+  poly([P(x+w,y,z),P(x+w,y+d,z),P(x+w,y+d,z+h),P(x+w,y,z+h)],f[2]);
+  poly([P(x,y,z+h),P(x+w,y,z+h),P(x+w,y+d,z+h),P(x,y+d,z+h)],f[0])}
+ function dim2(a,b,txt,side){
+  line(a,b,'var(--sk)',1.1);const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy)||1,nx=-dy/L*4,ny=dx/L*4;
+  line([a[0]-nx,a[1]-ny],[a[0]+nx,a[1]+ny],'var(--sk)',1.1);line([b[0]-nx,b[1]-ny],[b[0]+nx,b[1]+ny],'var(--sk)',1.1);
+  const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;let ang=Math.atan2(dy,dx)*180/Math.PI;const w=txt.length*8;
+  if(Math.abs(ang)>60&&Math.abs(ang)<120){const tx=side==='r'?mx+8:mx-8;sh.push(`<text x="${fx(tx)}" y="${fx(my+4)}" text-anchor="${side==='r'?'start':'end'}">${txt}</text>`);pts.push(side==='r'?[tx+w,my]:[tx-w,my]);return}
+  if(ang>90)ang-=180;if(ang<-90)ang+=180;const r=ang*Math.PI/180,ox=Math.sin(r)*9,oy=-Math.cos(r)*9;const tx=mx+(side==='d'?-ox*1.6:ox),ty=my+(side==='d'?-oy*1.6:oy);
+  sh.push(`<text x="${fx(tx)}" y="${fx(ty)}" text-anchor="middle" transform="rotate(${fx(ang)} ${fx(tx)} ${fx(ty)})">${txt}</text>`);pts.push([tx-w/2,ty-12],[tx+w/2,ty+12])}
+ const dim=(a,b,txt,side)=>dim2(P(...a),P(...b),txt,side);
+ function svg(pad=6){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;pts.forEach(([x,y])=>{x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)});
+  return `<svg class="iso" viewBox="${fx(x0-pad)} ${fx(y0-pad)} ${fx(x1-x0+2*pad)} ${fx(y1-y0+2*pad)}" stroke="var(--sk)" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${sh.join('')}</svg>`}
+ return {P,poly,line,box,dim,dim2,svg,G,raw:s=>sh.push(s),pts};
+}
+const OR='var(--or)';
+function cyl(g,x,y,z0,z1,r,f){const t=g.P(x,y,z1),b=g.P(x,y,z0),rx=r*4*1.2247,ry=r*4*.7071;g.pts.push([t[0]-rx,t[1]-ry],[b[0]+rx,b[1]+ry]);
+ g.raw(`<path d="M${t[0]-rx} ${t[1]}L${b[0]-rx} ${b[1]}A${rx} ${ry} 0 0 0 ${b[0]+rx} ${b[1]}L${t[0]+rx} ${t[1]}Z" fill="${f||'var(--il)'}"/><ellipse cx="${t[0]}" cy="${t[1]}" rx="${rx}" ry="${ry}" fill="var(--it)"/>`);return {t,b,rx,ry}}
+const ARTF={
+ laje(L){const g=ISO();[[2,2],[35,2],[2,25],[35,25]].forEach(([x,y])=>g.box(x,y,0,3,3,20));g.box(0,0,20,40,30,4);
+  if(L){g.dim([0,-5,24],[40,-5,24],'Comprimento');g.dim([47,0,24],[47,30,24],'Largura','d');g.dim([-3,33,20],[-3,33,24],'Espessura','l')}return g.svg(L?8:4)},
+ piso(L){const g=ISO();g.box(-4,-4,-3,48,38,3,g.G);g.box(0,0,0,40,30,2.5);
+  if(L){g.dim([0,-8,2.5],[40,-8,2.5],'Comprimento');g.dim([49,0,2.5],[49,30,2.5],'Largura','d');g.dim([-6,36,0],[-6,36,2.5],'Espessura','l')}return g.svg(L?8:4)},
+ viga(L){const g=ISO();g.box(1,0,0,4,6,12);g.box(55,0,0,4,6,12);g.box(0,0,12,60,6,10);for(let x=3;x<58;x+=4)g.line(g.P(x,6,12.7),g.P(x,6,21.3),OR,1.8);
+  if(L){g.dim([0,-5,22],[60,-5,22],'Comprimento');g.dim([69,0,22],[69,6,22],'Largura','d');g.dim([-3,9,12],[-3,9,22],'Altura','l')}return g.svg(L?8:4)},
+ baldrame(L){const g=ISO();g.box(-6,-8,-4,72,22,4,g.G);g.box(0,0,0,60,6,9);for(let x=3;x<58;x+=4)g.line(g.P(x,6,.7),g.P(x,6,8.3),OR,1.8);
+  if(L){g.dim([0,-5,9],[60,-5,9],'Comprimento');g.dim([69,0,9],[69,6,9],'Largura','d');g.dim([-3,9,0],[-3,9,9],'Altura','l')}return g.svg(L?8:4)},
+ sapata(L){const g=ISO();g.box(-6,-6,-3,42,42,3,g.G);g.box(0,0,0,30,30,6);
+  g.poly([g.P(0,30,6),g.P(30,30,6),g.P(20,20,14),g.P(10,20,14)],'var(--il)');g.poly([g.P(30,0,6),g.P(30,30,6),g.P(20,20,14),g.P(20,10,14)],'var(--ir)');g.poly([g.P(10,10,14),g.P(20,10,14),g.P(20,20,14),g.P(10,20,14)],'var(--it)');
+  g.box(11,11,14,8,8,22);g.line(g.P(13,19,15),g.P(13,19,35),OR,1.6);g.line(g.P(19,13,15),g.P(19,13,35),OR,1.6);
+  if(L){g.dim([0,38,0],[30,38,0],'L','d');g.dim([38,0,0],[38,30,0],'B','d');g.dim([-3,33,0],[-3,33,6],'h base','l');g.dim([-3,33,6],[-3,33,14],'h tronco','l')}return g.svg(L?8:4)},
+ pilar(L){const g=ISO();g.box(-8,-8,-2,30,30,2,g.G);g.box(0,0,0,8,14,50);for(let z=4;z<50;z+=6){g.line(g.P(.6,14,z),g.P(7.4,14,z),OR,1.6);g.line(g.P(8,.6,z),g.P(8,13.4,z),OR,1.6)}
+  if(L){g.dim([0,-6,52],[8,-6,52],'a');g.dim([16,0,46],[16,14,46],'b','d');g.dim([-4,18,0],[-4,18,50],'Altura','l')}return g.svg(L?8:4)},
+ broca(L){const g=ISO();g.box(-14,-14,-30,28,28,30,g.G);g.poly([g.P(-14,-14,0),g.P(14,-14,0),g.P(14,14,0),g.P(-14,14,0)],'var(--gt)');
+  const c=cyl(g,0,0,-27,3,5);g.line([c.t[0]-6,c.t[1]+4],[c.b[0]-6,c.b[1]],OR,1.6,'stroke-dasharray="5 4"');g.line([c.t[0]+6,c.t[1]+4],[c.b[0]+6,c.b[1]],OR,1.6,'stroke-dasharray="5 4"');
+  if(L){g.dim2([c.t[0]-c.rx,c.t[1]-c.ry-26],[c.t[0]+c.rx,c.t[1]-c.ry-26],'Diâmetro');g.dim2([c.t[0]+c.rx+60,c.t[1]+8],[c.t[0]+c.rx+60,c.b[1]],'Profundidade','r')}return g.svg(L?8:4)},
+ estribos(){const g=ISO();const bars=(ys)=>ys.forEach(([y,z])=>g.line(g.P(0,y,z),g.P(44,y,z),'var(--ir)',4));bars([[0,10],[0,0]]);
+  for(let x=2;x<44;x+=7)g.poly([g.P(x,0,0),g.P(x,7,0),g.P(x,7,10),g.P(x,0,10)],'none',`stroke="${OR}" stroke-width="2.6"`);bars([[7,10],[7,0]]);return g.svg(4)},
+ corte(){const g=ISO();[[0,[18,34]],[6,[12,30,44]],[12,[26]]].forEach(([y,cs])=>{g.line(g.P(0,y,0),g.P(52,y,0),'var(--ir)',4.5);cs.forEach(x=>g.line(g.P(x,y,-2.5),g.P(x,y,2.5),OR,2.4))});return g.svg(4)},
+ blocos(){const g=ISO();for(let r=0;r<4;r++){const o=r%2?4:0;for(let x=o-(o?8:0);x<32;x+=8){const xs=Math.max(0,x),w=Math.min(x+7.6,32)-xs;if(w>1)g.box(xs,0,r*4,w,3.6,3.8)}}
+  for(let x=1;x<32;x+=8){g.poly([g.P(x+1,.8,16),g.P(x+3,.8,16),g.P(x+3,2.8,16),g.P(x+1,2.8,16)],'var(--ir)');g.poly([g.P(x+4.4,.8,16),g.P(x+6.4,.8,16),g.P(x+6.4,2.8,16),g.P(x+4.4,2.8,16)],'var(--ir)')}return g.svg(4)},
+ cer(){const g=ISO();for(const y of [0,15])for(const x of [0,15])g.box(x,y,0,14,14,1.2);[[14.5,7],[14.5,22],[7,14.5],[22,14.5]].forEach(([x,y])=>g.box(x-.6,y-.6,1.2,1.2,1.2,1.4,[OR,OR,OR]));return g.svg(4)},
+ telhado(){const g=ISO();g.poly([g.P(-3,-3,12.5),g.P(43,-3,12.5),g.P(43,12,24),g.P(-3,12,24)],'#c96a12');g.box(0,0,0,40,24,14);
+  g.poly([g.P(40,0,14),g.P(40,24,14),g.P(40,12,24)],'var(--il)');g.poly([g.P(-3,27,12.5),g.P(43,27,12.5),g.P(43,12,24),g.P(-3,12,24)],OR);
+  for(let i=1;i<4;i++){const y=27-i*3.75,z=12.5+i*2.875;g.line(g.P(-3,y,z),g.P(43,y,z),'#fff',1,'opacity=".6"')}for(let x=1;x<43;x+=4)g.line(g.P(x,27,12.5),g.P(x,12,24),'#fff',.8,'opacity=".45"');
+  g.box(17,24,0,6,.4,9,['var(--ir)','var(--sk)','var(--ir)']);return g.svg(4)},
+ predio(){const g=ISO();const st='stroke="#69a8ff" stroke-width="1.1"';const F=['rgba(80,150,255,.18)','rgba(80,150,255,.10)','rgba(80,150,255,.14)'];
+  for(let z=0;z<=36;z+=12){g.box(0,0,z,40,24,1,F);if(z<36)for(const [x,y] of [[0,24],[20,24],[40,24],[40,0],[40,12]])g.line(g.P(x,y,z+1),g.P(x,y,z+12),'#69a8ff',1.4)}
+  g.box(28,-10,0,5,5,48,F);return g.svg(4).replace('class="iso"','class="iso bld"').replace('stroke="var(--sk)"','stroke="#69a8ff"')}
+};
+const ART2={
+ betoneira:`<svg viewBox="0 0 120 84" aria-hidden="true" stroke="var(--sk)" stroke-width="1.6" stroke-linejoin="round" fill="none"><path d="M30 66L44 44M86 70L74 44" stroke-width="3"/><circle cx="28" cy="70" r="7" fill="var(--il)"/><path d="M36 18L82 8L96 40L50 54Z" fill="${OR}"/><path d="M82 8L90 4l14 32-8 4" fill="var(--it)"/><path d="M44 26L86 17M47 37L91 28" stroke="#fff" stroke-width="1.4" opacity=".7"/><path d="M24 48H96" stroke-width="3"/></svg>`,
+ tracos:`<svg viewBox="0 0 120 84" aria-hidden="true" stroke="var(--sk)" stroke-width="1.6" stroke-linejoin="round" fill="none"><path d="M60 26H102L96 76H66Z" fill="var(--il)"/><ellipse cx="81" cy="26" rx="21" ry="6" fill="var(--it)"/><path d="M60 26a21 18 0 0 1 42 0"/><path d="M14 30q22-8 40 0v42q-20 6-40 0Z" fill="#d9a35b"/><path d="M14 40q22-6 40 0" stroke="#8a5a1d"/><rect x="26" y="48" width="16" height="12" rx="2" fill="#fff" stroke="#8a5a1d"/></svg>`,
+ pintura:`<svg viewBox="0 0 120 84" aria-hidden="true" stroke="var(--sk)" stroke-width="1.6" stroke-linejoin="round" fill="none"><rect x="30" y="10" width="62" height="20" rx="8" fill="${OR}"/><path d="M92 20h10v22H62v14" stroke-width="3.2"/><rect x="55" y="54" width="14" height="28" rx="5" fill="#1f56b8"/></svg>`
+};
+const ARTC={};const art=(k,L)=>{if(ARTF[k])return L?ARTF[k](1):(ARTC[k]||(ARTC[k]=ARTF[k](0)));return ART2[k]||''};
+const MAT={
+ cim:`<svg viewBox="0 0 56 40" aria-hidden="true" stroke="#8a5a1d" stroke-width="1.4"><path d="M12 8q16-5 32 0v26q-16 5-32 0Z" fill="#e0a85a"/><rect x="20" y="16" width="16" height="10" rx="2" fill="#fff"/></svg>`,
+ are:`<svg viewBox="0 0 56 40" aria-hidden="true"><path d="M4 34Q28 0 52 34Z" fill="#e2bd83" stroke="#a97f3e" stroke-width="1.2"/><path d="M14 28h4M26 22h3M34 28h4M22 30h3" stroke="#a97f3e"/></svg>`,
+ bri:`<svg viewBox="0 0 56 40" aria-hidden="true" stroke="#3f4752" stroke-width="1"><path d="M4 34Q28 2 52 34Z" fill="#8f98a3"/>${[[16,28],[24,22],[32,26],[40,30],[22,31],[30,16],[36,22]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.6" fill="#b7bec7"/>`).join('')}</svg>`
+};
+const IC={
+ back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+ home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9H14v-6h-4v6H3z"/></svg>',
+ hist:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+ traco:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 8h14l-2 12H7z"/><path d="M8 8a4 4 0 0 1 8 0"/></svg>',
+ ok:'<svg viewBox="0 0 26 26"><circle cx="13" cy="13" r="12" fill="#fff"/><path d="M7.5 13.5l3.6 3.6 7.4-8" fill="none" stroke="#0e2147" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ chev:'<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2l5 5-5 5"/></svg>',
+ save:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>',
+ share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg>',
+ calc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h1M12 12h1M16 12h0M8 16h1M12 16h1M16 16h0" stroke-linecap="round"/></svg>'
+};
+/* ---------- saída ---------- */
+const TXT={},LAST={};
+const strip=s=>String(s).replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
+function out(id,o){
+ $('#r-'+id).innerHTML=`<div class="cap">${o.cap}</div><div class="big">${o.big}<small>${o.unit||''}</small></div>${o.chip||''}${(o.items||[]).map(([l,v,s])=>`<div class="it${s?' s':''}"><span>${l}</span><b>${v}</b></div>`).join('')}${o.html||''}${o.note?`<p class="note">${o.note}</p>`:''}`;
+ TXT[id]=['LUPARO · '+strip(o.title),strip(o.cap)+': '+strip(o.big)+' '+strip(o.unit||''),...(o.items||[]).map(([l,v])=>strip(l)+': '+strip(v)),...(o.txt||[])].join('\n');
+ LAST[id]={big:strip(o.big),unit:strip(o.unit||''),title:strip(o.title),cap:strip(o.cap),bar:o.bar||''};if(typeof updBar==='function')updBar();
+}
+
+/* ---------- cubicagem ---------- */
+const LC=[['c','Comprimento','m'],['l','Largura','m'],['e','Espessura','cm'],['q','Quantidade','un']],LV=[['c','Comprimento','m'],['b','Largura','cm'],['h','Altura','cm'],['q','Quantidade','un']];
+const CT={
+ laje:{n:'Laje',f:LC,d:{c:'',l:'',e:'10',q:'1'},v:r=>num(r.c)*num(r.l)*num(r.e)/100*num(r.q),fo:r=>num(r.c)*num(r.l)*num(r.q),g:'f'},
+ viga:{n:'Viga',f:LV,d:{c:'',b:'14',h:'40',q:'1'},v:r=>num(r.c)*num(r.b)/100*num(r.h)/100*num(r.q),fo:r=>num(r.c)*(2*num(r.h)+num(r.b))/100*num(r.q),g:'f'},
+ pilar:{n:'Pilar',f:[['b','Lado a','cm'],['h','Lado b','cm'],['alt','Altura','m'],['q','Quantidade','un']],d:{b:'14',h:'30',alt:'',q:'1'},v:r=>num(r.b)/100*num(r.h)/100*num(r.alt)*num(r.q),fo:r=>2*(num(r.b)+num(r.h))/100*num(r.alt)*num(r.q),g:'m'},
+ sapata:{n:'Sapata',f:[['l','L (comprimento)','cm'],['b','B (largura)','cm'],['h','h base','cm'],['hp','h tronco','cm'],['pa','Pilar a','cm',null,1],['pb','Pilar b','cm',null,1],['q','Quantidade','un']],d:{l:'',b:'',h:'25',hp:'0',pa:'20',pb:'20',q:'1'},v:r=>volSap(r),fo:r=>2*(num(r.l)+num(r.b))/100*num(r.h)/100*num(r.q),g:'f'},
+ baldrame:{n:'Baldrame',f:LV,d:{c:'',b:'15',h:'30',q:'1'},v:r=>num(r.c)*num(r.b)/100*num(r.h)/100*num(r.q),fo:r=>2*num(r.c)*num(r.h)/100*num(r.q),g:'m'},
+ piso:{n:'Contrapiso',f:LC,d:{c:'',l:'',e:'5',q:'1'},v:r=>num(r.c)*num(r.l)*num(r.e)/100*num(r.q),fo:r=>0,g:'m'},
+ broca:{n:'Broca',f:[['d','Diâmetro','cm'],['p','Profundidade','m'],['q','Quantidade','un']],d:{d:'25',p:'',q:'1'},v:r=>Math.PI*(num(r.d)/200)**2*num(r.p)*num(r.q),fo:r=>0,g:'f'}
+};
+const da=k=>CT[k].g==='f'?'da':'do';
+function volSap(r){const L=num(r.l)/100,B=num(r.b)/100,A1=L*B,h=num(r.h)/100,hp=num(r.hp)/100,A2=(num(r.pa)+5)/100*(num(r.pb)+5)/100;return (A1*h+(hp>0?hp/3*(A1+A2+Math.sqrt(A1*A2)):0))*num(r.q)}
+const volConc=r=>CT[r.t]?CT[r.t].v(r):0;
+const cTipo=()=>CT[V('concTipo')]?V('concTipo'):'laje';
+function ensureRow(t){}
+function renderSeg(){const t=cTipo();$('#seg').innerHTML=Object.entries(CT).map(([k,c])=>{const n=S.rows.conc.filter(r=>r.t===k).length;return `<button data-seg="${k}" class="${k===t?'on':''}" aria-pressed="${k===t}">${art(k)}<span>${c.n}</span>${n?`<span class="n">${n}</span>`:''}</button>`}).join('')}
+function renderArt(){$('#concArt').innerHTML=art(cTipo(),1)}
+function renderConc(){renderArt();renderPF('conc');renderList('conc')}
+function fillConcSel(){const sel=$('#concTraco');if(!sel)return;const L=TR.filter(t=>t.tipo==='Concreto'||t.tipo==='Graute'||t.tipo==='Contrapiso');const A=L.length?L:TR;const cur=V('concTraco');
+ sel.innerHTML=A.map(t=>`<option value="${esc(t.id)}">${esc(t.nome)}</option>`).join('');if(A.some(t=>t.id===cur))sel.value=cur;else{S.v.concTraco=A[0]?A[0].id:'';sel.value=S.v.concTraco}}
+let CONC=0;
+function cConcreto(){
+ const L=S.rows.conc,G={};let t=0,fo=0;
+ L.forEach(r=>{const c=CT[r.t];if(!c)return;const v=c.v(r);if(!(v>0))return;t+=v;fo+=c.fo(r);(G[r.t]||(G[r.t]={v:0,n:0})).v+=v;G[r.t].n++});
+ const pe=N('perdaC'),tp=t*(1+pe/100);CONC=tp;renderList('conc');renderSeg();
+ const items=Object.keys(CT).filter(k=>G[k]).map(k=>[CT[k].n+' · '+G[k].n+' peça'+(G[k].n>1?'s':''),f(G[k].v,3)+' m³']);
+ if(fo>0)items.push(['Fôrma (laterais e fundo)',f(fo,1)+' m²']);
+ const tr=TR.find(x=>x.id===V('concTraco'))||TR[0];let html='',txt=[];
+ if(tr&&tp>0){const m=tp*1000/rendL(tr),q=x=>num(x)*m;const cim=ceil(q(tr.cim)),are=q(tr.are)*BALDE/1000,bri=q(tr.bri)*BALDE/1000;
+  html=`<h4>Materiais necessários</h4><div class="mats"><div>${MAT.cim}<span>Cimento</span><b>${cim} sacos</b><small>(50 kg)</small></div><div>${MAT.are}<span>Areia</span><b>${f(are,2)} m³</b><small>${f(q(tr.are),0)} baldes</small></div><div>${MAT.bri}<span>Brita</span><b>${f(bri,2)} m³</b><small>${f(q(tr.bri),0)} baldes</small></div></div><p class="extra">Traço: ${esc(tr.nome)} · água ≈ ${f(q(tr.agu),0)} L${num(tr.cal)?' · cal '+f(q(tr.cal),1)+' sacos':''}${(tr.ads||[]).filter(a=>a&&a.n&&num(a.q)).map(a=>' · '+esc(a.n)+' '+f(q(a.q),1)+' '+esc(a.u||'')).join('')}</p>`;
+  txt=['Materiais ('+strip(tr.nome)+'): cimento '+cim+' sacos, areia '+f(are,2)+' m³, brita '+f(bri,2)+' m³, água '+f(q(tr.agu),0)+' L']}
+ out('concreto',{title:'Cubicagem de concreto',cap:'Volume de todas as peças',big:f(t,2),unit:'m³ de concreto',chip:`<div class="chip">Com ${f(pe,1)}% de perda: <b>${f(tp,2)} m³</b></div>`,items,html,bar:'com perda '+f(tp,2)+' m³',txt:['Total com perda: '+f(tp,2)+' m³',...txt],note:t>0?'':'Lance as medidas das peças para calcular.'});
+}
+/* ---------- estribos ---------- */
+let EST=null;
+const PHI_E=['4.2','5.0','6.3','8.0'],PHI_L=['6.3','8.0','10.0','12.5','16.0','20.0','25.0'];
+const EF=[['c','Comprimento','m'],['q','Quantidade','un'],['b','Largura b','cm'],['h','Altura h','cm'],['cob','Cobrimento','cm',null,1],['s','Espaçamento','cm'],['phi','φ estribo','mm',PHI_E],['g','Gancho','cm',null,1],['nl','Barras longitudinais','un'],['pl','φ longitudinal','mm',PHI_L],['anc','Ancoragem','cm',null,1]];
+function estCalc(r){const C=num(r.c),Q=Math.max(0,Math.round(num(r.q))),b=num(r.b),h=num(r.h),c=num(r.cob),s=num(r.s),phi=num(r.phi),g=num(r.g),bar=N('eBarra')*100;
+ const bi=b-2*c,hi=h-2*c,comp=2*bi+2*hi+2*g,n=s>0&&C>0?Math.floor((C*100-2*c)/s)+1:0,NT=n*Q,porBar=comp>0?Math.floor(bar/comp):0,bars=porBar?ceil(NT/porBar):0;
+ const m=NT*comp/100,nl=Math.round(num(r.nl))*Q,pl=num(r.pl),cl=C>0?C*100+2*num(r.anc):0,ml=nl*cl/100;
+ return {C,Q,bi,hi,comp,n,NT,porBar,bars,m,kg:m*kgm(phi),phi,nl,pl,cl,ml,kgl:ml*kgm(pl),bar}}
+function cEstribos(){
+ const L=S.rows.est,bar=N('eBarra')*100,T={},TL={};let NT=0,kg=0;const items=[],w=[];
+ renderList('est');L.forEach((r,i)=>{const e=estCalc(r);
+  if(!e.NT&&!e.nl)return;const nm=r.desc||('Peça '+(i+1));NT+=e.NT;kg+=e.kg+e.kgl;
+  items.push([esc(nm)+' · '+e.Q+'× '+f(e.C,2)+' m',e.NT+' est. φ'+f(e.phi,1)+' × '+f(e.comp,0)+' cm']);
+  const k=f(e.phi,1);(T[k]||(T[k]={m:0,kg:0,b:0,n:0})).m+=e.m;T[k].kg+=e.kg;T[k].b+=e.bars;T[k].n+=e.NT;
+  if(e.nl){const q=f(e.pl,1);(TL[q]||(TL[q]={m:0,kg:0})).m+=e.ml;TL[q].kg+=e.kgl}
+  if(e.bi<=0||e.hi<=0)w.push(esc(nm)+': cobrimento maior que a seção.');if(e.cl>bar)w.push(esc(nm)+': longitudinal de '+f(e.cl/100,2)+' m passa da barra, prever transpasse.')});
+ let html='';
+ if(Object.keys(T).length){html+='<h4>Estribos por bitola</h4>'+Object.entries(T).map(([k,t])=>`<div class="it s"><span>φ${k} · ${t.n} un · ${f(t.m,1)} m</span><b>${t.b} barras · ${f(t.kg,1)} kg</b></div>`).join('')}
+ if(Object.keys(TL).length){html+='<h4>Longitudinais por bitola</h4>'+Object.entries(TL).map(([k,t])=>`<div class="it s"><span>φ${k} · ${f(t.m,1)} m</span><b>≈ ${ceil(t.m/(bar/100))} barras · ${f(t.kg,1)} kg</b></div>`).join('')+'<p class="note">Barras longitudinais estimadas pelo comprimento total: mande para o Corte para o plano exato.</p>'}
+ EST={rows:L.map(estCalc).map((e,i)=>({...e,desc:L[i].desc||('Peça '+(i+1))}))};
+ out('estribos',{title:'Estribos',cap:'Estribos de todas as peças',bar:f(kg,1)+' kg de aço',big:f(NT,0),unit:'un',chip:`<div class="chip">Aço total: <b>${f(kg,1)} kg</b></div>`,items,html,note:w.join(' ')||(items.length?'':'Lance as peças para calcular.'),txt:[...Object.entries(T).map(([k,t])=>'Estribos φ'+k+': '+t.n+' un, '+t.b+' barras, '+f(t.kg,1)+' kg'),...Object.entries(TL).map(([k,t])=>'Longitudinal φ'+k+': '+f(t.m,1)+' m, '+f(t.kg,1)+' kg')]});
+}
+
+/* ---------- corte ---------- */
+function cCorte(){
+ const bar=N('cBar')*100,sob=N('cSobra'),G={};let html='',txt=[],kgT=0,barT=0,lim=0;
+ if(bar<=0){out('corte',{title:'Corte',cap:'Informe a barra comercial',big:'0',unit:'barras'});return}
+ S.rows.corte.forEach(r=>{const phi=num(r.phi),c=num(r.comp),q=Math.round(num(r.q));if(phi>0&&c>0&&q>0)(G[phi.toFixed(1)]||(G[phi.toFixed(1)]=[])).push({c,q})});
+ const keys=Object.keys(G).sort((a,b)=>a-b);
+ for(const phi of keys){
+  const pcs=[];let over=0;
+  for(const it of G[phi]){if(it.c>bar){over+=it.q;continue}for(let i=0;i<it.q&&lim<20000;i++,lim++)pcs.push(it.c)}
+  pcs.sort((a,b)=>b-a);
+  const bins=[];
+  for(const p of pcs){let best=-1,bl=Infinity;for(let i=0;i<bins.length;i++){const l=bins[i].left-p;if(l>=-1e-6&&l<bl){bl=l;best=i}}if(best<0)bins.push({left:bar-p,it:[p]});else{bins[best].left-=p;bins[best].it.push(p)}}
+  const P={};bins.forEach(b=>{const k=b.it.join('|');(P[k]||(P[k]={n:0,it:b.it,left:b.left})).n++});
+  const used=pcs.reduce((a,b)=>a+b,0),kg=bins.length*bar/100*kgm(+phi),ap=bins.length?used/(bins.length*bar)*100:0;
+  const sobras=bins.filter(b=>b.left>=sob).length;
+  kgT+=kg;barT+=bins.length;
+  html+=`<h4>φ ${f(+phi,1)} mm · ${bins.length} barras · ${f(kg,1)} kg</h4><p>Aproveitamento ${f(ap,1)}% · ${sobras} sobra(s) aproveitável(is) ≥ ${f(sob,0)} cm</p>`;
+  txt.push('','φ '+f(+phi,1)+' mm: '+bins.length+' barras ('+f(kg,1)+' kg)');
+  Object.values(P).sort((a,b)=>b.n-a.n).forEach(p=>{const cnt={};p.it.forEach(x=>cnt[x]=(cnt[x]||0)+1);const d=Object.entries(cnt).sort((a,b)=>b[0]-a[0]).map(([c,n])=>n+'× '+f(+c,1)).join(' + ');
+   html+=`<div class="pat"><b>${p.n}×</b> barra: ${d} cm · sobra ${f(p.left,0)} cm</div>`;txt.push('  '+p.n+'x barra: '+d+' cm | sobra '+f(p.left,0)+' cm')});
+  if(over)html+=`<p class="warn">${over} peça(s) maior(es) que a barra: dividir com transpasse e lançar as partes.</p>`;
+ }
+ if(lim>=20000)html+='<p class="warn">Mais de 20 mil peças: o plano foi limitado.</p>';
+ out('corte',{title:'Plano de corte',cap:'Barras de '+f(bar/100,1)+' m a comprar',big:f(barT,0),unit:'barras',items:[['Peso total do aço',f(kgT,1)+' kg',1]],html:html||'<p>Lance as peças com bitola, comprimento e quantidade.</p>',txt});
+}
+
+/* ---------- blocos ---------- */
+const BT=[['est14','Estrutural 14×19×39',39,19,14,70],['est19','Estrutural 19×19×39',39,19,19,70],['est14m','Estrutural 14×19×29',29,19,14,70],['ved9','Concreto vedação 9×19×39',39,19,9,100],['ved11','Concreto vedação 11,5×19×39',39,19,11.5,100],['cer9','Cerâmico 9×19×19',19,19,9,100],['cer11','Cerâmico 11,5×14×24',24,14,11.5,100],['cer14','Cerâmico 14×19×29',29,19,14,100],['cus','Personalizado']];
+$('#bTipo').innerHTML=BT.map(b=>`<option value="${b[0]}">${b[1]}</option>`).join('');
+let ARG=0;
+function cBlocos(){
+ const ap=sum('parede'),av=sum('vao'),al=Math.max(0,ap-av),L=N('bL'),H=N('bH'),E=N('bE'),j=N('bJ'),pe=N('bP');
+ const pm2=L>0&&H>0?10000/((L+j)*(H+j)):0,tot=ceil(al*pm2*(1+pe/100));
+ const can=L>0?ceil(N('bCinta')*100/(L+j)*(1+pe/100)):0;
+ const vm2=(1/((H+j)/100)+1/((L+j)/100))*(j/100)*(E/100)*(N('bFat')/100),arg=al*vm2*1.1;ARG=arg;
+ out('blocos',{title:'Blocos',cap:'Blocos com '+f(pe,1)+'% de perda',big:f(tot,0),unit:'blocos',items:[['Área de parede',f(ap,2)+' m²'],['Vãos descontados',f(av,2)+' m²'],['Área líquida',f(al,2)+' m²'],['Blocos por m²',f(pm2,2)],['Canaletas (cintas e vergas)',f(can,0)+' un'],['Argamassa de assentamento (+10%)',f(arg,3)+' m³',1]],note:'Meio-blocos e blocos de amarração dependem da paginação: confira no projeto de alvenaria.'});
+}
+
+/* ---------- traços ---------- */
+const REF_TR=[
+ {id:'ref-est',nome:'Concreto estrutural (vigas, pilares, lajes)',tipo:'Concreto',uso:'Peças estruturais, aprox. 20–25 MPa',cim:1,cal:0,are:4,bri:5.5,agu:25,ads:[],ren:0},
+ {id:'ref-fund',nome:'Concreto baldrame e sapata',tipo:'Concreto',uso:'Fundação rasa e baldrame',cim:1,cal:0,are:5,bri:6.5,agu:30,ads:[],ren:0},
+ {id:'ref-magro',nome:'Concreto magro (lastro)',tipo:'Concreto',uso:'Lastro de fundo de vala e sapata',cim:1,cal:0,are:8,bri:11,agu:36,ads:[],ren:0},
+ {id:'ref-contra',nome:'Contrapiso',tipo:'Contrapiso',uso:'Contrapiso e regularização',cim:1,cal:0,are:7,bri:0,agu:22,ads:[],ren:0},
+ {id:'ref-assent',nome:'Argamassa de assentamento de blocos',tipo:'Argamassa',uso:'Alvenaria de bloco',cim:1,cal:0,are:8,bri:0,agu:30,ads:[{n:'Vedalit',q:150,u:'ml'}],ren:0},
+ {id:'ref-reboco',nome:'Reboco / emboço',tipo:'Argamassa',uso:'Revestimento interno e externo',cim:1,cal:1,are:9,bri:0,agu:32,ads:[{n:'Vedalit',q:150,u:'ml'}],ren:0},
+ {id:'ref-imper',nome:'Argamassa impermeável (baldrame)',tipo:'Argamassa',uso:'Respaldo e laterais do baldrame',cim:1,cal:0,are:6,bri:0,agu:24,ads:[{n:'Vedacit',q:1,u:'L'}],ren:0},
+ {id:'ref-chap',nome:'Chapisco',tipo:'Chapisco',uso:'Base para reboco',cim:1,cal:0,are:6,bri:0,agu:26,ads:[],ren:0},
+ {id:'ref-graute',nome:'Graute para bloco estrutural',tipo:'Graute',uso:'Pontos de graute e canaletas (brita 0)',cim:1,cal:0,are:3,bri:4,agu:24,ads:[],ren:0}
+];
+const rendAuto=t=>{const v=num(t.cim)*50/3.1+num(t.cal)*20/2.3+num(t.are)*BALDE*1.35/2.62+num(t.bri)*BALDE*1.42/2.7+num(t.agu);return v/(1-(num(t.bri)>0?0.02:0.05))};
+const rendL=t=>num(t.ren)>0?num(t.ren):rendAuto(t);
+function compTxt(t,k=1){const p=[];const s=x=>f(x*k,2);
+ p.push(s(num(t.cim))+' saco(s) de cimento');if(num(t.cal))p.push(s(num(t.cal))+' saco(s) de cal');
+ if(num(t.are))p.push(s(num(t.are))+' balde(s) de areia');if(num(t.bri))p.push(s(num(t.bri))+' balde(s) de brita');
+ if(num(t.agu))p.push(f(num(t.agu)*k,1)+' L de água ('+f(num(t.agu)*k/BALDE,2)+' balde)');
+ (t.ads||[]).forEach(a=>{if(a&&a.n&&num(a.q))p.push(a.n+' '+f(num(a.q)*k,2)+' '+(a.u||''))});return p}
+let TR=REF_TR.slice(),PR=null,DB=null,trRef=true,prRef=true,canWrite=true;
+
+/* ---------- betoneira ---------- */
+function fillBetSel(){const sel=$('#betTraco'),cur=V('betTraco');sel.innerHTML=TR.map(t=>`<option value="${esc(t.id)}">${esc(t.nome)}</option>`).join('');if(TR.some(t=>t.id===cur))sel.value=cur;else{S.v.betTraco=TR[0]?TR[0].id:'';sel.value=S.v.betTraco}}
+function cBet(){
+ const t=TR.find(x=>x.id===V('betTraco'))||TR[0];
+ if(!t){out('betoneira',{title:'Betoneira',cap:'Cadastre um traço',big:'0',unit:'betonadas'});$('#betUma').textContent='';return}
+ const spb=num(V('betSpb'))||1,cs=num(t.cim)||1,k=spb/cs,vb=rendL(t)*k/1000,vol=N('betVol'),n=vb>0?ceil(vol/vb):0;
+ $('#betUma').innerHTML=`<p style="margin:0 0 6px"><b>${esc(t.nome)}</b> · rende ${f(vb*1000,0)} L por betonada</p><ul style="margin:0;padding-left:20px">${compTxt(t,k).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
+ const T=x=>num(x)*k*n,are=T(t.are),bri=T(t.bri);
+ const items=[['Rendimento por betonada',f(vb*1000,0)+' L'],['Volume produzido',f(n*vb,2)+' m³'],['Cimento',f(T(t.cim),1)+' sacos de 50 kg',1]];
+ if(num(t.cal))items.push(['Cal',f(T(t.cal),1)+' sacos de 20 kg']);
+ if(are)items.push(['Areia',f(are,1)+' baldes = '+f(are*BALDE/1000,2)+' m³',1]);
+ if(bri)items.push(['Brita',f(bri,1)+' baldes = '+f(bri*BALDE/1000,2)+' m³',1]);
+ items.push(['Água',f(T(t.agu),0)+' L']);
+ (t.ads||[]).forEach(a=>{if(a&&a.n&&num(a.q))items.push([esc(a.n),f(T(a.q),2)+' '+esc(a.u||'')])});
+ out('betoneira',{title:'Betonadas · '+esc(t.nome),cap:'Betonadas para '+f(vol,2)+' m³',big:f(n,0),unit:'betonadas',items,note:'Areia e brita medidas soltas; acrescente 10–15% na compra pelo inchamento e perda no canteiro.'+(num(t.ren)>0?'':' Rendimento estimado: depois de medir na obra, informe no cadastro do traço.')});
+}
+
+/* ---------- pintura ---------- */
+const REF_PR=[
+ {id:'ref-sel',nome:'Seladora acrílica',un:'L',rend:8,dem:1,e1:18,e1n:'lata 18 L',e2:3.6,e2n:'galão 3,6 L',o:1},
+ {id:'ref-fundo',nome:'Fundo preparador de paredes',un:'L',rend:10,dem:1,e1:18,e1n:'lata 18 L',e2:3.6,e2n:'galão 3,6 L',o:2},
+ {id:'ref-mcorr',nome:'Massa corrida PVA (interna)',un:'kg',rend:2,dem:2,e1:25,e1n:'balde 25 kg',e2:5.7,e2n:'galão 5,7 kg',o:3},
+ {id:'ref-macr',nome:'Massa acrílica (externa e área úmida)',un:'kg',rend:1.8,dem:2,e1:25,e1n:'balde 25 kg',e2:5.7,e2n:'galão 5,7 kg',o:4},
+ {id:'ref-acr',nome:'Tinta acrílica',un:'L',rend:14,dem:2,e1:18,e1n:'lata 18 L',e2:3.6,e2n:'galão 3,6 L',o:5},
+ {id:'ref-pva',nome:'Tinta látex PVA',un:'L',rend:11,dem:2,e1:18,e1n:'lata 18 L',e2:3.6,e2n:'galão 3,6 L',o:6},
+ {id:'ref-graf',nome:'Grafiato acrílico',un:'kg',rend:0.5,dem:1,e1:25,e1n:'balde 25 kg',e2:0,e2n:'',o:7},
+ {id:'ref-text',nome:'Textura acrílica rolada',un:'kg',rend:1,dem:1,e1:25,e1n:'balde 25 kg',e2:0,e2n:'',o:8},
+ {id:'ref-esm',nome:'Esmalte sintético',un:'L',rend:12,dem:2,e1:3.6,e1n:'galão 3,6 L',e2:0.9,e2n:'quarto 0,9 L',o:9}
+];
+PR=REF_PR.slice();
+const DEF_ON={'ref-sel':1,'ref-mcorr':1,'ref-acr':1,'p-sel':1,'p-mcorr':1,'p-acr':1};
+function embs(q,p){const e1=num(p.e1),e2=num(p.e2);if(e1<=0)return '';let n1=Math.floor(q/e1+1e-9),r=q-n1*e1,n2=0;
+ if(e2>0&&r>1e-9){n2=ceil(r/e2);if(n2*e2>=e1*0.9){n1++;n2=0}}else if(r>1e-9)n1++;
+ const a=[];if(n1)a.push(n1+'× '+(p.e1n||e1));if(n2)a.push(n2+'× '+(p.e2n||e2));return a.join(' + ')||'—'}
+function pSel(p){const s=S.v.pSel[p.id];return {on:s?!!s.on:!!DEF_ON[p.id],dem:s&&s.dem!==undefined?s.dem:String(p.dem??1)}}
+function renderPList(){
+ $('#pList').innerHTML=PR.map(p=>{const s=pSel(p);return `<div class="prod"><label class="ck"><input type="checkbox" data-p="${esc(p.id)}" data-pf="on" ${s.on?'checked':''}><span>${esc(p.nome)}<span class="m">${f(num(p.rend),2)} m²/${esc(p.un)} por demão · ${f(num(p.rend)*num(p.e1),0)} m² por ${esc(p.e1n||'embalagem')}</span></span></label><label>Demãos<input type="text" inputmode="decimal" data-p="${esc(p.id)}" data-pf="dem" value="${esc(s.dem)}"></label></div>`}).join('');
+ $('#prList').innerHTML=prRef&&DB?'':PR.map(p=>`<div class="tr" style="margin-top:8px"><p><b>${esc(p.nome)}</b> · ${f(num(p.rend),2)} m²/${esc(p.un)}/demão · ${esc(p.e1n)}${p.e2n?' / '+esc(p.e2n):''}</p>${prRef?'':`<div class="b"><button data-pe="${esc(p.id)}">Editar</button><button data-pd="${esc(p.id)}">Excluir</button></div>`}</div>`).join('');
+}
+function cPintura(){
+ const amb=sum('pamb'),a=Math.max(0,amb+N('pArea')),pe=N('pPerda');
+ const items=[['Ambientes ('+S.rows.pamb.filter(r=>ROWS.pamb.val(r)>0).length+')',f(amb,2)+' m²']],txt=[];let any=0;if(N('pArea'))items.push(['Área extra',f(N('pArea'),2)+' m²']);
+ PR.forEach(p=>{const s=pSel(p);if(!s.on)return;any=1;const d=num(s.dem),r=num(p.rend);const q=r>0?a*d/r*(1+pe/100):0;
+  items.push([esc(p.nome)+' · '+f(d,1)+' demão(s)',f(q,1)+' '+esc(p.un)+' → '+esc(embs(q,p)),1])});
+ out('pintura',{title:'Pintura',cap:'Área de pintura',big:f(a,1),unit:'m²',items,note:(any?'':'Marque os produtos ao lado. ')+'Rendimentos médios de referência, com '+f(pe,1)+'% de perda: confira a ficha técnica do fabricante e ajuste no cadastro.'});
+}
+
+/* ---------- piso ---------- */
+function cPiso(){
+ const a=sum('amb'),C=N('rPC'),L=N('rPL'),pe=N('rPerda'),ap=a*(1+pe/100),cx=N('rCx'),areaP=C*L/10000;
+ const pcs=areaP>0?ceil(ap/areaP):0,cxs=cx>0?ceil(ap/cx):0,pcx=areaP>0&&cx>0?Math.round(cx/areaP):0;
+ const mx=Math.max(C,L);const auto=mx<=30?5:mx<=60?7.5:10;const cons=V('rCons')!==''&&V('rCons')!=null?N('rCons'):auto;
+ const tipoA=mx<=30?'AC-I (interno) ou AC-II, colagem simples':mx<=60?'AC-II / AC-III, dupla colagem':'AC-III, dupla colagem';
+ const ag=a*cons*1.05,sac=N('rSaco')>0?ceil(ag/N('rSaco')):0;
+ const Cm=C*10,Lm=L*10,rj=Cm>0&&Lm>0?(Cm+Lm)/(Cm*Lm)*N('rE')*N('rJ')*1.58:0,rjT=rj*a*1.1,rjE=N('rRej')>0?ceil(rjT/N('rRej')):0;
+ const items=[['Área dos ambientes',f(a,2)+' m²'],['Área com perda',f(ap,2)+' m²'],['Caixas de piso',f(cxs,0)+' cx ('+pcx+' peças/cx)',1],['Peças',f(pcs,0)+' un'],['Argamassa '+f(cons,1)+' kg/m²',f(ag,0)+' kg = '+sac+' sacos',1],['Tipo indicado',tipoA],['Rejunte '+f(rj,3)+' kg/m²',f(rjT,1)+' kg = '+rjE+' emb.']];
+ if(V('rNiv')){const ns=N('rNs')||30,cpp=ceil(C/ns)+ceil(L/ns),cl=ceil(pcs*cpp*1.05),cm2=areaP>0?cpp/areaP:0,cu=ceil(cm2*N('rDia'));
+  items.push(['Clipes niveladores ('+cpp+'/peça)',f(cl,0)+' un ≈ '+ceil(cl/100)+' pct de 100',1],['Cunhas (reutilizáveis)',f(cu,0)+' un ≈ '+ceil(cu/50)+' pct de 50']);}
+ else{const es=ceil(pcs*1.1);items.push(['Espaçador cruzeta '+f(N('rJ'),1)+' mm',f(es,0)+' un ≈ '+ceil(es/100)+' pct de 100',1])}
+ out('piso',{title:'Piso',cap:'Caixas de '+f(C,0)+'×'+f(L,0)+' cm',big:f(cxs,0),unit:'caixas',items,note:(V('rNiv')?'O clipe do nivelador já marca a junta; espaçador só onde não houver clipe. ':'')+'Consumo de argamassa automático pelo tamanho da peça; informe o da embalagem para ajustar.'});
+}
+
+/* ---------- telhado ---------- */
+const TT=[
+ {k:'romana',galga:34,n:'Cerâmica romana',t:'pc',pm2:16,cum:3,imin:30},{k:'portuguesa',galga:34,n:'Cerâmica portuguesa',t:'pc',pm2:17,cum:3,imin:30},{k:'francesa',galga:33,n:'Cerâmica francesa',t:'pc',pm2:15,cum:3,imin:32},{k:'americana',galga:36,n:'Cerâmica americana',t:'pc',pm2:12,cum:3,imin:30},{k:'colonial',galga:37,n:'Cerâmica colonial / plan',t:'pc',pm2:25,cum:3,imin:25},{k:'concreto',galga:32,n:'Telha de concreto',t:'pc',pm2:10.5,cum:3,imin:30},
+ {k:'fibro6',n:'Fibrocimento ondulada 6 mm (1,10 m)',t:'ch',util:1.05,sizes:[1.22,1.53,1.83,2.13,2.44,3.05,3.66],imin:15},{k:'fibro5',n:'Fibrocimento ondulada 5 mm (1,10 m)',t:'ch',util:1.05,sizes:[1.22,1.53,1.83,2.13,2.44],imin:15},
+ {k:'metal',n:'Metálica trapezoidal / sanduíche (sob medida)',t:'mt',util:1.0,imin:5}
+];
+$('#tTipo').innerHTML=TT.map(t=>`<option value="${t.k}">${t.n}</option>`).join('');
+function cTelhado(){
+ const t=TT.find(x=>x.k===V('tTipo'))||TT[0],i=N('tInc')/100,fi=Math.sqrt(1+i*i),pe=N('tPerda'),ag=num(V('tAguas'))||2,modo=V('tModo')||'dim';
+ const comp=N('tComp'),proj=N('tProj'),aProj=modo==='area'?N('tArea'):comp*proj*ag,aReal=aProj*fi,agua=proj*fi;
+ const cum=V('tCum')!==''&&V('tCum')!=null?N('tCum'):(modo==='dim'&&ag===2?comp:0);
+ const items=[['Área em planta',f(aProj,2)+' m²'],['Fator de inclinação',f(fi,3)],['Área real do telhado',f(aReal,2)+' m²']];if(modo==='dim')items.push(['Comprimento da água inclinada',f(agua,2)+' m']);
+ let big=0,unit='telhas',html='',txt=[],note=N('tInc')<t.imin?'<span class="warn">Inclinação abaixo da mínima usual para este tipo ('+t.imin+'%). Confira com o fabricante.</span>':'Inclinação mínima usual: '+t.imin+'% (referência; confira o catálogo do fabricante).';
+ if(t.t==='pc'){const pm2=V('tPm2')!==''&&V('tPm2')!=null?N('tPm2'):t.pm2;big=ceil(aReal*pm2*(1+pe/100));const cu=ceil(cum*t.cum*(1+pe/100));
+  items.push(['Telhas por m²',f(pm2,1)],['Telhas com '+f(pe,1)+'% de perda',f(big,0)+' un',1],['Cumeeiras ('+t.cum+'/m · '+f(cum,2)+' m)',f(cu,0)+' un',1]);}
+ else if(t.t==='ch'){const u=N('tUtil')||t.util,rec=N('tRec')/100;const rows=t.sizes.map(Lc=>{let n,sob;
+   if(modo==='dim'){const along=agua<=Lc?1:ceil((agua-Lc)/(Lc-rec))+1,across=ceil(comp/u);n=along*across*ag;sob=Lc+(along-1)*(Lc-rec)-agua;return {Lc,n,sob,along,m2:n*Lc*1.1}}
+   n=ceil(aReal/(u*(Lc-rec))*(1+pe/100));return {Lc,n,sob:null,m2:n*Lc*1.1}});
+  const best=rows.reduce((a,b)=>b.m2<a.m2||(b.m2===a.m2&&b.n<a.n)?b:a,rows[0]);big=best.n;unit='chapas '+f(best.Lc,2)+' m';
+  html=`<h4>Por tamanho de chapa</h4><div class="scroll"><table class="ttab"><thead><tr><th>Chapa</th><th>Qtd</th>${modo==='dim'?'<th>Por água</th><th>Sobra</th>':''}<th>m² comprado</th></tr></thead><tbody>${rows.map(r=>`<tr class="${r===best?'best':''}"><td>${f(r.Lc,2)} × 1,10</td><td>${r.n}</td>${modo==='dim'?`<td>${r.along} fiada(s)</td><td>${f(r.sob*100,0)} cm</td>`:''}<td>${f(r.m2,1)}</td></tr>`).join('')}</tbody></table></div><p>Destaque: menor área comprada. Sobra = quanto passa da água (vai para o beiral ou corte).</p>`;
+  txt=rows.map(r=>'Chapa '+f(r.Lc,2)+' m: '+r.n+' un');const cu=ceil(cum/u);items.push(['Cumeeiras ('+f(cum,2)+' m)',f(cu,0)+' peças',1]);}
+ else{const u=N('tUtil')||t.util;if(modo==='dim'){const n=ceil(comp/u)*ag;big=n;unit='telhas';items.push(['Comprimento de cada telha',f(agua,2)+' m',1],['Telhas',n+' un ('+ceil(comp/u)+' por água)',1],['Área de telha',f(n*u*agua,2)+' m²'])}
+  else{big=ceil(aReal*(1+pe/100));unit='m²';items.push(['Área de telha com perda',f(big,0)+' m²',1])}
+  items.push(['Cumeeira',f(cum,2)+' m',1])}
+ const pm=1+N('tPerdaM')/100,vao=V('tTerca')!==''&&V('tTerca')!=null?N('tTerca'):(t.t==='pc'?1.5:t.t==='ch'?1.69:2),mad=[];
+ const terc=modo==='dim'?(ceil(agua/vao)+1)*comp*ag:aReal/vao;
+ if(t.t==='pc'){const gal=(V('tGalga')!==''&&V('tGalga')!=null?N('tGalga'):t.galga)/100,cb=N('tCaib')/100;
+  const rip=gal>0?aReal/gal:0,cai=modo==='dim'&&cb>0?(ceil(comp/cb)+1)*agua*ag:(cb>0?aReal/cb:0);
+  mad.push(['Ripas (galga '+f(gal*100,0)+' cm)',f(rip*pm,0)+' m'],['Caibros (a cada '+f(cb*100,0)+' cm)',f(cai*pm,0)+' m'],['Terças (vão '+f(vao,2)+' m)',f(terc*pm,0)+' m'],['Viga de cumeeira',f(cum*pm,1)+' m'])}
+ else{mad.push(['Terças (vão '+f(vao,2)+' m)',f(terc*pm,0)+' m'],['Viga de cumeeira',f(cum*pm,1)+' m']);
+  const par=t.t==='ch'?ceil(big*N('tParT')):ceil((modo==='dim'?big*(N('tUtil')||t.util)*agua:aReal)*N('tParM2'));
+  mad.push(['Parafusos com vedação',par+' un ≈ '+ceil(par/100)+' cx de 100'])}
+ html+='<h4>Madeiramento e fixação</h4>'+mad.map(([l,v])=>`<div class="it s"><span>${l}</span><b>${v}</b></div>`).join('')+'<p class="note">Metros lineares com '+f(N('tPerdaM'),0)+'% de perda. Seções usuais: ripa 1,5×5, caibro 5×6, terça 6×12 cm; confira no projeto do telhado.</p>';
+ txt=[...txt,...mad.map(([l,v])=>l+': '+v)];
+ out('telhado',{title:'Telhado · '+t.n,cap:t.n,big:f(big,0),unit,items,html,note,txt});
+}
+
+/* ---------- lançamento de peças (formulário + lista) ---------- */
+const PF={
+ conc:{type:()=>cTipo(),F:t=>CT[t].f,name:t=>CT[t].n,def:t=>CT[t].d,val:r=>volConc(r),fmt:v=>f(v,3)+' m³',ex:t=>({sapata:'S1',pilar:'P1',broca:'E1',laje:'L1',piso:'C1'})[t]||'V1',gen:t=>CT[t].g,tot:L=>{const v=L.reduce((a,r)=>a+volConc(r),0);return f(v,2)+' m³'}},
+ est:{type:()=>'est',F:()=>EF,name:()=>'Peça',def:()=>ROWS.est.def,val:r=>estCalc(r).NT,fmt:v=>f(v,0)+' estribos',ex:()=>'V1',gen:()=>'f',info:r=>{const e=estCalc(r);return e.NT?`${e.NT} estribos de ${f(e.comp,0)} cm · ${f(e.kg+e.kgl,1)} kg de aço`:''},
+  tot:L=>{let n=0,kg=0;L.forEach(r=>{const e=estCalc(r);n+=e.NT;kg+=e.kg+e.kgl});return n+' estribos · '+f(kg,1)+' kg'}}
+};
+const EDIT={},FLASH={};
+function draft(key){const P=PF[key],t=P.type(),id=key+':'+t;if(!S.v.dr||typeof S.v.dr!=='object')S.v.dr={};if(!S.v.dr[id])S.v.dr[id]={desc:'',...P.def(t)};return S.v.dr[id]}
+function renderPF(key){const P=PF[key],t=P.type(),F=P.F(t),d=draft(key),ed=EDIT[key]!=null,nm=P.name(t),fem=P.gen(t)==='f';
+ const fld=([k,l,u,o])=>`<label>${l}${o?`<select data-dr="${key}" data-f="${k}">${o.map(x=>`<option ${String(d[k])===x?'selected':''}>${x}</option>`).join('')}</select>`:`<span class="ig"><input inputmode="decimal" data-dr="${key}" data-f="${k}" value="${esc(d[k])}" aria-label="${l} (${u})"><i>${u}</i></span>`}</label>`;
+ const main=F.filter(x=>!x[4]),adv=F.filter(x=>x[4]);
+ $('#pf-'+key).innerHTML=`<div class="card pf${ed?' ed':''}"><div class="pfh"><h3>${ed?'Editando':(fem?'Nova':'Novo')} ${nm.toLowerCase()}</h3><input type="text" data-dr="${key}" data-f="desc" value="${esc(d.desc)}" placeholder="Nome (ex.: ${P.ex(t)})" aria-label="Identificação"></div><div class="fc">${main.map(fld).join('')}</div>${adv.length?`<details><summary>Mais ajustes: ${adv.map(x=>x[1].toLowerCase()).join(', ')}</summary><div class="fc">${adv.map(fld).join('')}</div></details>`:''}<div class="pfv" id="pfv-${key}"></div><div class="pfb">${ed?`<button class="pri" data-pfok="${key}">✓ Salvar alteração</button><button data-pfx="${key}">Cancelar</button>`:`<button class="pri" data-pfok="${key}">✓ Adicionar ${fem?'esta':'este'} ${nm.toLowerCase()}</button>`}</div><p class="toast" id="pft-${key}" role="status"></p></div>`;
+ pfPrev(key)}
+function pfPrev(key){const P=PF[key],t=P.type(),d=draft(key),v=P.val({...d,t});$('#pfv-'+key).innerHTML=v>0?`Esta peça: <b>${P.info?P.info(d):P.fmt(v)}</b>`:'Preencha as medidas para ver o resultado desta peça.'}
+const nextName=s=>{const m=String(s||'').match(/^(.*?)(\d+)$/);return m?m[1]+(+m[2]+1):''};
+function pfOk(key){const P=PF[key],t=P.type(),d=draft(key),v=P.val({...d,t}),msg=$('#pft-'+key);
+ if(!(v>0)){msg.className='toast warn';msg.textContent='Preencha as medidas antes de adicionar.';return}
+ const item={...d,t},nm=P.name(t)+(d.desc?' '+d.desc:''),fem=P.gen(t)==='f';let i;
+ if(EDIT[key]!=null){i=EDIT[key];S.rows[key][i]=item;EDIT[key]=null}else{S.rows[key].push(item);i=S.rows[key].length-1}
+ const was=EDIT[key]===null&&item!==undefined;S.v.dr[key+':'+t]={...d,desc:nextName(d.desc)};FLASH[key]=i;
+ renderPF(key);save();calc();const m=$('#pft-'+key);m.className='toast';m.textContent=`✓ ${nm} ${fem?'lançada':'lançado'}. Total: ${P.tot(S.rows[key])}`;}
+function pfEdit(key,i){const r=S.rows[key][i];if(!r)return;if(key==='conc'){S.v.concTipo=r.t;renderSeg();renderArt()}const P=PF[key];S.v.dr[key+':'+P.type()]={...r};EDIT[key]=i;renderPF(key);$('#pf-'+key).scrollIntoView({behavior:'smooth',block:'start'})}
+function pfCancel(key){const P=PF[key],t=P.type();EDIT[key]=null;S.v.dr[key+':'+t]={desc:'',...P.def(t)};renderPF(key);save()}
+function renderList(key){const P=PF[key],L=S.rows[key];const fl=FLASH[key];FLASH[key]=null;
+ $('#pl-'+key).innerHTML=L.length?'<div class="lst">'+L.map((r,i)=>{const t=key==='conc'?r.t:'est',F=P.F(t).filter(x=>x[0]!=='q'&&!x[4]&&!x[3]);const dims=key==='est'?`${esc(r.c)} m · ${esc(r.b)}×${esc(r.h)} cm`:F.filter(([k])=>num(r[k])>0).map(([k,l,u])=>`${esc(r[k])} ${u}`).join(' × ')+(num(r.q)>1?` · ${f(num(r.q),0)}×`:'')+(key==='est'?` · φ${esc(r.phi)} c/${esc(r.s)} cm`:'');
+  return `<div class="li${i===fl?' new':''}${EDIT[key]===i?' on':''}"><div><b>${P.name(t)}${r.desc?' '+esc(r.desc):' '+(i+1)}</b><small>${dims}</small></div><b class="v">${P.info?esc(estCalc(r).NT+' est.'):P.fmt(P.val(r))}</b><button class="x" data-ed="${key}" data-i="${i}" aria-label="Editar">✎</button><button class="x" data-rm="${key}" data-i="${i}" aria-label="Excluir">×</button></div>`}).join('')+`</div><div class="tot"><span>Total (${L.length} peça${L.length>1?'s':''})</span><span>${P.tot(L)}</span></div>`:'<p class="empty">Nenhuma peça lançada ainda. Preencha acima e toque em adicionar.</p>'}
+function onDraft(e){const t=e.target;if(!t.dataset||!t.dataset.dr)return;draft(t.dataset.dr)[t.dataset.f]=t.value;save();pfPrev(t.dataset.dr)}
+document.addEventListener('input',onDraft);document.addEventListener('change',e=>{if(e.target.tagName==='SELECT')onDraft(e)});
+
+/* ---------- barra de resultado ---------- */
+let RESVIS=false;
+function updBar(){const k=(location.hash.slice(1)||'inicio'),L=LAST[k],bar=$('#sumbar');
+ if(!L||['inicio','historico','tracos'].includes(k)||RESVIS){bar.hidden=true;document.body.classList.remove('hasbar');return}
+ bar.hidden=false;document.body.classList.add('hasbar');$('#sbT').innerHTML=`<small>${esc(L.cap)}</small><b>${esc(L.big)} <i>${esc(L.unit)}</i></b>${L.bar?`<small>${esc(L.bar)}</small>`:''}`}
+const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.target.closest('.pane.on'))RESVIS=en.isIntersecting});updBar()},{threshold:.15});
+/* ---------- motor ---------- */
+function calc(){rowVals();cConcreto();cEstribos();cCorte();cBlocos();cBet();cPintura();cPiso();cTelhado()}
+function initScalars(){$$('[data-s]').forEach(el=>{const k=el.dataset.s;if(S.v[k]!==undefined){if(el.type==='checkbox')el.checked=!!S.v[k];else el.value=S.v[k]}else S.v[k]=el.type==='checkbox'?el.checked:el.value})}
+function setS(k,v){S.v[k]=v;const el=$(`[data-s="${k}"]`);if(el)el.value=v}
+function onField(e){const t=e.target;
+ if(t.dataset.s){S.v[t.dataset.s]=t.type==='checkbox'?t.checked:t.value;
+  if(t.dataset.s==='bTipo'){const b=BT.find(x=>x[0]===t.value);if(b&&b[2]){setS('bL',b[2]);setS('bH',b[3]);setS('bE',b[4]);setS('bFat',b[5])}}
+  if(t.dataset.s==='tTipo'){setS('tPm2','');setS('tUtil','')}
+  save();calc()}
+ else if(t.dataset.k){const r=S.rows[t.dataset.k][+t.dataset.i];if(r){r[t.dataset.f]=t.value;save();calc()}}
+ else if(t.dataset.p){const p=PR.find(x=>x.id===t.dataset.p);if(!p)return;const cur=pSel(p);if(t.dataset.pf==='on')cur.on=t.checked;else cur.dem=t.value;S.v.pSel[p.id]=cur;save();cPintura()}
+ else if(t.closest&&t.closest('#trForm'))tfAuto();
+}
+document.addEventListener('input',onField);document.addEventListener('change',e=>{if(e.target.tagName==='SELECT'||e.target.type==='checkbox')onField(e)});
+
+/* ---------- banco Supabase (versão online) ---------- */
+const SBURL='https://rjhbsyemsrrrdajepxaq.supabase.co',SBKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqaGJzeWVtc3JycmRhamVweGFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU3MjU5MTIsImV4cCI6MjExMTMwMTkxMn0.MqnXi8RAOjiDTFsFQdyl1iWXjAn9mlwyR4t0DJrjF5A';
+const SB=(()=>{const H={apikey:SBKEY,Authorization:'Bearer '+SBKEY,'Content-Type':'application/json'},TB={tracos:'calc_tracos',produtos:'calc_produtos',historico:'calc_historico'},subs={};
+ const snap=d=>({docs:d,size:d.length,empty:!d.length,metadata:{fromCache:false,hasPendingWrites:false}});
+ async function load(col){const ord=col==='historico'?'criado.desc':'id.asc';const r=await fetch(`${SBURL}/rest/v1/${TB[col]}?select=id,dados&order=${ord}&limit=500`,{headers:H});if(!r.ok)throw {code:'unavailable'};return (await r.json()).map(x=>({id:x.id,exists:true,data:()=>x.dados||{}}))}
+ function refresh(col){(subs[col]||[]).forEach(s=>load(col).then(d=>s.n(snap(d))).catch(e=>s.e&&s.e(e)))}
+ function code(force){let c='';try{c=localStorage.getItem('luparo-codigo')||''}catch(e){}if(!c||force){c=(window.prompt(force?'Código incorreto. Digite o código da equipe Luparo:':'Para salvar, digite o código da equipe Luparo:')||'').trim();if(c)try{localStorage.setItem('luparo-codigo',c)}catch(e){}}return c}
+ async function rpc(fn,body,col){let c=code(false);for(let t=0;t<3;t++){if(!c)break;let r;try{r=await fetch(`${SBURL}/rest/v1/rpc/${fn}`,{method:'POST',headers:H,body:JSON.stringify({p_codigo:c,...body})})}catch(e){throw {code:'unavailable'}}
+  if(r.ok){refresh(col);try{return await r.json()}catch(e){return null}}const tx=await r.text();if(!tx.includes('codigo_invalido'))throw {code:'unavailable'};c=code(true)}throw {code:'invalid_argument'}}
+ const coll=col=>{const q={onSnapshot(n,e){(subs[col]||(subs[col]=[])).push({n,e});load(col).then(d=>n(snap(d))).catch(err=>e&&e(err));return()=>{}},orderBy(){return q},limit(){return q},
+  doc(id){return {set:d=>rpc('calc_salvar',{p_tabela:col,p_id:id||null,p_dados:d},col),delete:()=>rpc('calc_excluir',{p_tabela:col,p_id:id},col)}}};return q};
+ setInterval(()=>Object.keys(subs).forEach(refresh),60000);addEventListener('focus',()=>Object.keys(subs).forEach(refresh));
+ return {collection:coll}})();
+
+/* ---------- capa ---------- */
+$$('[data-art]').forEach(el=>el.innerHTML=art(el.dataset.art));$$('[data-ic]').forEach(el=>{el.outerHTML=IC[el.dataset.ic]||''});
+const HOME=[['laje','Concreto','Laje, viga, pilar, sapata, baldrame e mais','concreto'],['estribos','Estribos','Quantidade e dimensões','estribos'],['corte','Corte de ferragem','Plano nas barras de 12 m','corte'],['blocos','Alvenaria','Paredes, blocos e argamassa','blocos'],['betoneira','Betoneira','Betonadas pelo traço','betoneira'],['tracos','Traços','Padrão Luparo por balde','tracos'],['pintura','Pintura','Tinta, massa, seladora, grafiato','pintura'],['cer','Pisos cerâmicos','Piso, argamassa, nivelador','piso'],['telhado','Telhado','Telhas, madeiramento, parafusos','telhado']];
+$('#bld').innerHTML=art('predio');
+$('#home').innerHTML=`<div class="tiles">${HOME.map(([a,n,d,go])=>`<a class="tile" href="#${go}"><span class="pic">${art(a)}</span><span><b>${n}</b><small>${d}</small></span><span class="go">${IC.chev}</span></a>`).join('')}</div>`;
+
+/* ---------- navegação ---------- */
+const TABS=['inicio','concreto','estribos','corte','blocos','betoneira','tracos','pintura','piso','telhado','historico'];
+let navN=0;
+function show(){const h=location.hash.slice(1),k=TABS.includes(h)?h:'inicio';$$('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-'+k));
+ $$('.nav a').forEach(a=>{const on=a.getAttribute('href')==='#'+k;a.classList.toggle('on',on);on?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current')});window.scrollTo(0,0);navN++;RESVIS=false;updBar()}
+const go=k=>{if(location.hash==='#'+k)show();else location.hash=k};
+addEventListener('hashchange',show);
+
+/* ---------- histórico ---------- */
+let HIST=[],histDb=false;
+const MODN={concreto:'Cubicagem',estribos:'Estribos',corte:'Corte de ferragem',blocos:'Alvenaria',betoneira:'Betoneira',pintura:'Pintura',piso:'Pisos cerâmicos',telhado:'Telhado'};
+function localHist(){try{return JSON.parse(localStorage.getItem('luparo-hist')||'[]')}catch(e){return []}}
+function renderHist(){const L=histDb?HIST:localHist();
+ $('#histSt').textContent=histDb?'Cálculos salvos no banco da Luparo, visíveis para a equipe.':'Banco indisponível: cálculos salvos só neste aparelho.';
+ $('#histList').innerHTML=L.length?L.map(h=>`<div class="tr"><p class="m">${esc(MODN[h.mod]||h.mod)} · ${esc(new Date(h.criado).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}))}${h.autor?' · '+esc(h.autor):''}</p><h4>${esc(h.titulo)}</h4><p class="hb">${esc(h.big)} <span class="m">${esc(h.unit)}</span></p><details><summary>Ver resumo</summary><pre>${esc(h.txt)}</pre></details><div class="b"><button class="nv" data-ho="${esc(h.id)}">Abrir</button><button data-hc="${esc(h.id)}">Copiar</button><button data-hd="${esc(h.id)}">Excluir</button></div></div>`).join(''):'<p class="empty">Nenhum cálculo salvo ainda. Use "Salvar cálculo" no resultado de qualquer tela.</p>'}
+const findH=id=>(histDb?HIST:localHist()).find(h=>h.id===id);
+async function saveHist(mod,titulo,box){
+ const L=LAST[mod]||{},h={mod,titulo:titulo||((MODN[mod]||mod)+' '+new Date().toLocaleDateString('pt-BR')),big:L.big||'',unit:L.unit||'',txt:TXT[mod]||'',snap:JSON.stringify({v:S.v,rows:S.rows}),criado:new Date().toISOString(),autor:USER||''};
+ const msg=box.querySelector('.toast');
+ try{if(DB){await DB.collection('historico').doc().set(h)}else{const A=localHist();A.unshift({...h,id:'l'+Date.now()});localStorage.setItem('luparo-hist',JSON.stringify(A.slice(0,100)));renderHist()}
+  msg.textContent='Cálculo salvo no histórico.';box.querySelector('.row').style.display='none'}catch(err){msg.textContent=err&&err.code==='invalid_argument'?'Código da equipe incorreto: nada foi salvo.':'Não foi possível salvar agora.'}}
+function openHist(h){try{const s=JSON.parse(h.snap);if(s&&s.v&&s.rows){S.v={...S.v,...s.v};for(const k in s.rows)if(Array.isArray(s.rows[k]))S.rows[k]=s.rows[k];
+ $$('[data-s]').forEach(el=>{const k=el.dataset.s;if(S.v[k]!==undefined){if(el.type==='checkbox')el.checked=!!S.v[k];else el.value=S.v[k]}});for(const k in ROWS)renderRows(k);renderSeg();renderPList();fillBetSel();fillConcSel();save();calc();go(h.mod)}}catch(e){}}
+async function copyTxt(t,b,lab){try{await navigator.clipboard.writeText(t);const o=b.innerHTML;b.textContent='Copiado';setTimeout(()=>b.innerHTML=o,1600);return true}catch(e){return false}}
+
+/* ---------- cliques ---------- */
+document.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+ if(d.seg){S.v.concTipo=d.seg;EDIT.conc=null;renderSeg();renderConc();save()}
+ else if(d.pfok)pfOk(d.pfok);
+ else if(d.pfx)pfCancel(d.pfx);
+ else if(d.ed)pfEdit(d.ed,+d.i);
+ else if(d.rm){if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='?';b.setAttribute('aria-label','Confirmar exclusão');setTimeout(()=>{b.dataset.arm='';b.textContent='×'},2500);return}S.rows[d.rm].splice(+d.i,1);if(EDIT[d.rm]!=null)pfCancel(d.rm);save();calc();if(d.rm==='conc')renderSeg()}
+ else if(b.id==='sbGo'){const r=$('.pane.on .res');if(r)r.scrollIntoView({behavior:'smooth',block:'start'})}
+ else if(d.dupk){const r=S.rows[d.dupk][+d.i];if(r){S.rows[d.dupk].splice(+d.i+1,0,{...r,desc:''});renderRows(d.dupk);save();calc()}}
+ else if(d.dup!==undefined){const r=S.rows.conc[+d.dup];if(r){S.rows.conc.splice(+d.dup+1,0,{...r,desc:''});renderConc();save();calc()}}
+ else if(d.add){S.rows[d.add].push({...ROWS[d.add].def});renderRows(d.add);save();calc();const ins=$$(`#rows-${d.add} tbody tr:last-child input`);if(ins[0])ins[0].focus()}
+ else if(d.del){S.rows[d.del].splice(+d.i,1);if(!S.rows[d.del].length&&ROWS[d.del].def)S.rows[d.del].push({...ROWS[d.del].def});renderRows(d.del);save();calc()}
+ else if(d.clear){if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Confirmar';setTimeout(()=>{b.dataset.arm='';b.textContent='Limpar'},3000);return}
+  d.clear.split(',').forEach(k=>{S.rows[k]=k==='conc'?[]:ROWS[k].def?[{...ROWS[k].def}]:[];renderRows(k)});if(d.clear==='conc')renderConc();b.dataset.arm='';b.textContent='Limpar';save();calc()}
+ else if(d.share){const t=TXT[d.share]||'',box=$('#cb-'+d.share);if(await copyTxt(t,b)){box.innerHTML='<p class="toast">Resumo copiado: cole no WhatsApp ou e-mail.</p>'}else{box.innerHTML='<textarea class="copybox" readonly></textarea><p class="note">Selecione e copie o texto acima.</p>';const ta=box.querySelector('textarea');ta.value=t;ta.focus();ta.select()}}
+ else if(d.save){const box=$('#sv-'+d.save);if(box.innerHTML&&box.querySelector('.row').style.display!=='none'){box.innerHTML='';return}
+  box.innerHTML=`<div class="row"><input type="text" placeholder="Nome (ex.: Obra X · baldrames)" aria-label="Nome do cálculo"><button class="nv" data-sv="${d.save}">Salvar</button></div><p class="toast"></p>`;box.querySelector('input').focus()}
+ else if(d.sv){const box=$('#sv-'+d.sv);b.disabled=true;await saveHist(d.sv,box.querySelector('input').value.trim(),box);b.disabled=false}
+ else if(d.calc){$('#res-'+d.calc).scrollIntoView({behavior:'smooth',block:'start'})}
+ else if(d.back!==undefined){if(navN>1&&history.length>1)history.back();else go('inicio')}
+ else if(d.go)go(d.go);
+ else if(d.send==='concreto'){setS('betVol',CONC.toFixed(3));const c=TR.find(t=>t.id===V('concTraco'));if(c)setS('betTraco',c.id);save();calc();go('betoneira')}
+ else if(d.send==='blocos'){setS('betVol',ARG.toFixed(3));const c=TR.find(t=>t.tipo==='Argamassa');if(c){setS('betTraco',c.id)}save();calc();go('betoneira')}
+ else if(d.send==='estribos'&&EST){EST.rows.forEach(e=>{if(e.NT>0)S.rows.corte.push({desc:'Estribo '+e.desc,phi:String(e.phi),comp:e.comp.toFixed(1),q:String(e.NT)});if(e.nl>0&&e.cl>0)S.rows.corte.push({desc:'Long. '+e.desc,phi:String(e.pl),comp:e.cl.toFixed(0),q:String(e.nl)})});
+  S.rows.corte=S.rows.corte.filter(r=>r.comp!==''||r.desc!=='');renderRows('corte');save();calc();go('corte')}
+ else if(d.ho){const h=findH(d.ho);if(h)openHist(h)}
+ else if(d.hc){const h=findH(d.hc);if(h)copyTxt(h.txt,b)}
+ else if(d.hd){armDel(b,async()=>{if(histDb)await DB.collection('historico').doc(d.hd).delete();else{localStorage.setItem('luparo-hist',JSON.stringify(localHist().filter(h=>h.id!==d.hd)));renderHist()}})}
+ else if(d.te!==undefined)tfLoad(TR.find(t=>t.id===d.te));
+ else if(d.td!==undefined)armDel(b,()=>DB.collection('tracos').doc(d.td).delete());
+ else if(d.pe!==undefined)pfLoad(PR.find(p=>p.id===d.pe));
+ else if(d.pd!==undefined)armDel(b,()=>DB.collection('produtos').doc(d.pd).delete());
+ else if(b.id==='seedTr')seed('tracos',REF_TR,b);
+ else if(b.id==='seedPr')seed('produtos',REF_PR,b);
+});
+function armDel(b,fn){if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Confirmar exclusão';setTimeout(()=>{b.dataset.arm='';b.textContent='Excluir'},3000);return}Promise.resolve().then(fn).catch(err=>alertDb(err))}
+function alertDb(err){const m=err&&err.code==='invalid_argument'?'Código da equipe incorreto: nada foi salvo.':err&&err.code==='quota_exceeded'?'Banco cheio: apague itens antigos.':'Não foi possível salvar agora. Tente de novo.';$('#tf-err').textContent=m;$('#pf-err').textContent=m}
+/* ---------- formulário de traço ---------- */
+let tfId=null;
+function adsUI(ads){$('#tf-ads').innerHTML=[0,1,2].map(i=>{const a=(ads||[])[i]||{};return `<div class="fields" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr);margin-bottom:6px"><input type="text" id="tf-an${i}" placeholder="Aditivo ${i+1} (ex.: Vedacit)" value="${esc(a.n)}" aria-label="Nome do aditivo ${i+1}"><input id="tf-aq${i}" inputmode="decimal" placeholder="qtd" value="${esc(a.q??'')}" aria-label="Quantidade"><select id="tf-au${i}" aria-label="Unidade">${['ml','L','g','kg'].map(u=>`<option ${a.u===u?'selected':''}>${u}</option>`).join('')}</select></div>`}).join('')}
+function tfRead(){const g=i=>$('#tf-'+i).value;return {nome:g('nome').trim(),tipo:g('tipo'),uso:g('uso').trim(),cim:num(g('cim')),cal:num(g('cal')),are:num(g('are')),bri:num(g('bri')),agu:num(g('agu')),ren:num(g('ren')),ads:[0,1,2].map(i=>({n:$('#tf-an'+i).value.trim(),q:num($('#tf-aq'+i).value),u:$('#tf-au'+i).value})).filter(a=>a.n&&a.q)}}
+function tfAuto(){const t=tfRead();$('#tf-auto').textContent='Rendimento estimado: '+f(rendAuto(t),0)+' L por massada ('+f(rendAuto(t)/1000,3)+' m³).'+(t.ren?' Usando o medido: '+f(t.ren,0)+' L.':'')}
+function tfLoad(t){tfId=t&&!trRef?t.id:null;t=t||{nome:'',tipo:'Concreto',uso:'',cim:1,cal:0,are:4,bri:6,agu:27,ren:'',ads:[]};
+ ['nome','tipo','uso','cim','cal','are','bri','agu'].forEach(k=>$('#tf-'+k).value=t[k]??'');$('#tf-ren').value=num(t.ren)>0?t.ren:'';adsUI(t.ads);$('#tfTitle').textContent=tfId?'Editar traço':'Novo traço';$('#tf-err').textContent='';tfAuto();if(t.nome)$('#trForm').scrollIntoView({block:'start',behavior:'smooth'})}
+$('#tf-new').onclick=()=>tfLoad(null);
+$('#tf-save').onclick=async()=>{const t=tfRead();if(!t.nome){$('#tf-err').textContent='Dê um nome ao traço.';return}if(!(t.cim>0)){$('#tf-err').textContent='Informe os sacos de cimento.';return}
+ if(!DB){$('#tf-err').textContent='Banco indisponível nesta visualização: abra pelo link do app no claude.ai.';return}
+ if(trRef){$('#tf-err').textContent='Grave primeiro os traços de referência no banco (botão abaixo da lista).';return}
+ const b=$('#tf-save');b.disabled=true;try{t.atualizado=new Date().toISOString();await (tfId?DB.collection('tracos').doc(tfId):DB.collection('tracos').doc()).set(t);tfLoad(null);$('#tf-err').textContent='Traço salvo.'}catch(err){alertDb(err)}b.disabled=false};
+function renderTr(){
+ $('#trList').innerHTML=TR.map(t=>`<div class="tr"><h4>${esc(t.nome)}<span class="tag">${esc(t.tipo)}</span></h4>${t.uso?`<p class="m">${esc(t.uso)}</p>`:''}<p>${compTxt(t).map(esc).join(' · ')}</p><p class="m">Rende ${f(rendL(t),0)} L por massada (${f(rendL(t)/1000,3)} m³) · ${num(t.ren)>0?'medido na obra':'estimado'} · ${f(1000/rendL(t),1)} sacos de cimento por m³</p>${trRef?'':`<div class="b"><button data-te="${esc(t.id)}">Editar</button><button data-td="${esc(t.id)}">Excluir</button></div>`}</div>`).join('')||'<p>Nenhum traço cadastrado.</p>';
+ $('#trSeed').innerHTML=trRef&&DB?'<div class="card" style="margin-top:12px"><p style="margin:0 0 8px">O banco ainda está vazio. Esses são traços de referência; grave no banco para editar e usar como padrão da Luparo.</p><button class="pri" id="seedTr">Gravar traços de referência</button></div>':'';
+ fillBetSel();fillConcSel();cBet();cConcreto();
+}
+async function seed(col,arr,b){b.disabled=true;try{for(const x of arr){const {id,...rest}=x;await DB.collection(col).doc(id.replace('ref-','p-')).set({...rest,atualizado:new Date().toISOString()})}}catch(err){alertDb(err)}b.disabled=false}
+
+/* ---------- formulário de produto ---------- */
+let pfId=null;
+function pfLoad(p){pfId=p?p.id:null;p=p||{nome:'',un:'L',rend:'',dem:2,e1:18,e1n:'lata 18 L',e2:3.6,e2n:'galão 3,6 L'};['nome','un','rend','dem','e1','e1n','e2','e2n'].forEach(k=>$('#pf-'+k).value=p[k]??'');$('#pf-err').textContent=''}
+$('#pf-new').onclick=()=>pfLoad(null);
+$('#pf-save').onclick=async()=>{const g=k=>$('#pf-'+k).value;const p={nome:g('nome').trim(),un:g('un'),rend:num(g('rend')),dem:num(g('dem'))||1,e1:num(g('e1')),e1n:g('e1n').trim(),e2:num(g('e2')),e2n:g('e2n').trim(),o:pfId?(PR.find(x=>x.id===pfId)||{}).o||99:99};
+ if(!p.nome||!(p.rend>0)||!(p.e1>0)){$('#pf-err').textContent='Preencha nome, rendimento e embalagem grande.';return}
+ if(!DB){$('#pf-err').textContent='Banco indisponível nesta visualização.';return}if(prRef){$('#pf-err').textContent='Grave primeiro os produtos de referência no banco.';return}
+ try{p.atualizado=new Date().toISOString();await (pfId?DB.collection('produtos').doc(pfId):DB.collection('produtos').doc()).set(p);pfLoad(null);$('#pf-err').textContent='Produto salvo.'}catch(err){alertDb(err)}};
+function renderPr(){renderPList();$('#prStatus').innerHTML=prRef&&DB?'Produtos de referência (banco vazio). <button class="pri" id="seedPr">Gravar no banco</button>':'';cPintura()}
+
+/* ---------- banco ---------- */
+function status(m,err){const el=$('#dbStatus');el.textContent=m;el.classList.toggle('err',!!err)}
+function sub(col,cb){let ok=false;const tm=setTimeout(()=>{if(!ok)status('O banco ainda não respondeu: mostrando a última versão disponível.',1)},10000);
+ DB.collection(col).onSnapshot(snap=>{if(!snap.metadata.fromCache){ok=true;clearTimeout(tm)}cb(snap.docs.map(d=>({...d.data(),id:d.id})),snap.metadata.fromCache)},err=>{ok=true;clearTimeout(tm);status('Banco indisponível agora ('+(err&&err.code||'erro')+'). Usando traços de referência.',1)})}
+(async()=>{
+ DB=SB;
+ if(!DB){status('Banco de traços indisponível nesta visualização: usando os traços de referência (só leitura).',1);renderTr();renderPr();return}
+ sub('tracos',(arr,cache)=>{if(arr.length){TR=arr.sort((a,b)=>String(a.tipo).localeCompare(String(b.tipo))||String(a.nome).localeCompare(String(b.nome)));trRef=false;status(arr.length+' traço(s) no banco da Luparo')}else if(!cache){TR=REF_TR.slice();trRef=true;status('Banco vazio: mostrando traços de referência.')}renderTr();if(!tfId)tfLoad(null)});
+ DB.collection('historico').orderBy('criado','desc').limit(200).onSnapshot(snap=>{HIST=snap.docs.map(d=>({...d.data(),id:d.id}));histDb=true;renderHist()},()=>{histDb=false;renderHist()});
+ sub('produtos',(arr,cache)=>{if(arr.length){PR=arr.sort((a,b)=>num(a.o)-num(b.o)||String(a.nome).localeCompare(String(b.nome)));prRef=false}else if(!cache){PR=REF_PR.slice();prRef=true}renderPr()});
+})();
+
+let USER='';
+(async()=>{try{const dk=window.claude&&window.claude.use?await window.claude.use('desktop'):null;if(dk&&dk.install&&await dk.install.state()==='available'){const b=$('#instBtn');b.hidden=false;b.onclick=async()=>{try{await dk.install.request()}catch(e){}}}}catch(e){}})();
+/* ---------- partida ---------- */
+for(const k in ROWS)renderRows(k);
+S.rows.conc=S.rows.conc.filter(r=>volConc(r)>0);S.rows.est=S.rows.est.filter(r=>estCalc(r).NT>0);
+initScalars();renderSeg();renderConc();renderPF('est');$$('.res').forEach(r=>io.observe(r));adsUI([]);tfLoad(null);renderTr();renderPList();fillConcSel();renderHist();show();calc();
+}
+
+</script>
+</body></html>
