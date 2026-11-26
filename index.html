@@ -502,18 +502,18 @@ function out(id,o){
 }
 
 /* ---------- cubicagem ---------- */
-const LC=[['c','Comprimento','m'],['l','Largura','m'],['e','Espessura','cm'],['q','Quantidade','un']],LV=[['c','Comprimento','m'],['b','Largura','cm'],['h','Altura','cm'],['q','Quantidade','un']];
+const LC=[['c','Comprimento','m'],['l','Largura','m'],['e','Espessura','m'],['q','Quantidade','un']],LV=[['c','Comprimento','m'],['b','Largura','m'],['h','Altura','m'],['q','Quantidade','un']];
 const CT={
- laje:{n:'Laje',f:LC,d:{c:'',l:'',e:'10',q:'1'},v:r=>num(r.c)*num(r.l)*num(r.e)/100*num(r.q),fo:r=>num(r.c)*num(r.l)*num(r.q),g:'f'},
- viga:{n:'Viga',f:LV,d:{c:'',b:'14',h:'40',q:'1'},v:r=>num(r.c)*num(r.b)/100*num(r.h)/100*num(r.q),fo:r=>num(r.c)*(2*num(r.h)+num(r.b))/100*num(r.q),g:'f'},
- pilar:{n:'Pilar',f:[['b','Lado a','cm'],['h','Lado b','cm'],['alt','Altura','m'],['q','Quantidade','un']],d:{b:'14',h:'30',alt:'',q:'1'},v:r=>num(r.b)/100*num(r.h)/100*num(r.alt)*num(r.q),fo:r=>2*(num(r.b)+num(r.h))/100*num(r.alt)*num(r.q),g:'m'},
- sapata:{n:'Sapata',f:[['l','L (comprimento)','cm'],['b','B (largura)','cm'],['h','h base','cm'],['hp','h tronco','cm'],['pa','Pilar a','cm',null,1],['pb','Pilar b','cm',null,1],['q','Quantidade','un']],d:{l:'',b:'',h:'25',hp:'0',pa:'20',pb:'20',q:'1'},v:r=>volSap(r),fo:r=>2*(num(r.l)+num(r.b))/100*num(r.h)/100*num(r.q),g:'f'},
- baldrame:{n:'Baldrame',f:LV,d:{c:'',b:'15',h:'30',q:'1'},v:r=>num(r.c)*num(r.b)/100*num(r.h)/100*num(r.q),fo:r=>2*num(r.c)*num(r.h)/100*num(r.q),g:'m'},
- piso:{n:'Contrapiso',f:LC,d:{c:'',l:'',e:'5',q:'1'},v:r=>num(r.c)*num(r.l)*num(r.e)/100*num(r.q),fo:r=>0,g:'m'},
- broca:{n:'Broca',f:[['d','Diâmetro','cm'],['p','Profundidade','m'],['q','Quantidade','un']],d:{d:'25',p:'',q:'1'},v:r=>Math.PI*(num(r.d)/200)**2*num(r.p)*num(r.q),fo:r=>0,g:'f'}
+ laje:{n:'Laje',f:LC,d:{c:'',l:'',e:'0,10',q:'1'},v:r=>num(r.c)*num(r.l)*num(r.e)*num(r.q),fo:r=>num(r.c)*num(r.l)*num(r.q),g:'f',cm:['e']},
+ viga:{n:'Viga',f:LV,d:{c:'',b:'0,14',h:'0,40',q:'1'},v:r=>num(r.c)*num(r.b)*num(r.h)*num(r.q),fo:r=>num(r.c)*(2*num(r.h)+num(r.b))*num(r.q),g:'f',cm:['b','h']},
+ pilar:{n:'Pilar',f:[['b','Lado a','m'],['h','Lado b','m'],['alt','Altura','m'],['q','Quantidade','un']],d:{b:'0,14',h:'0,30',alt:'',q:'1'},v:r=>num(r.b)*num(r.h)*num(r.alt)*num(r.q),fo:r=>2*(num(r.b)+num(r.h))*num(r.alt)*num(r.q),g:'m',cm:['b','h']},
+ sapata:{n:'Sapata',f:[['l','L (comprimento)','m'],['b','B (largura)','m'],['h','h base','m'],['hp','h tronco','m'],['pa','Pilar a','m',null,1],['pb','Pilar b','m',null,1],['q','Quantidade','un']],d:{l:'',b:'',h:'0,25',hp:'0',pa:'0,20',pb:'0,20',q:'1'},v:r=>volSap(r),fo:r=>2*(num(r.l)+num(r.b))*num(r.h)*num(r.q),g:'f',cm:['l','b','h','hp','pa','pb']},
+ baldrame:{n:'Baldrame',f:LV,d:{c:'',b:'0,15',h:'0,30',q:'1'},v:r=>num(r.c)*num(r.b)*num(r.h)*num(r.q),fo:r=>2*num(r.c)*num(r.h)*num(r.q),g:'m',cm:['b','h']},
+ piso:{n:'Contrapiso',f:LC,d:{c:'',l:'',e:'0,05',q:'1'},v:r=>num(r.c)*num(r.l)*num(r.e)*num(r.q),fo:r=>0,g:'m',cm:['e']},
+ broca:{n:'Broca',f:[['d','Diâmetro','m'],['p','Profundidade','m'],['q','Quantidade','un']],d:{d:'0,25',p:'',q:'1'},v:r=>Math.PI*(num(r.d)/2)**2*num(r.p)*num(r.q),fo:r=>0,g:'f',cm:['d']}
 };
 const da=k=>CT[k].g==='f'?'da':'do';
-function volSap(r){const L=num(r.l)/100,B=num(r.b)/100,A1=L*B,h=num(r.h)/100,hp=num(r.hp)/100,A2=(num(r.pa)+5)/100*(num(r.pb)+5)/100;return (A1*h+(hp>0?hp/3*(A1+A2+Math.sqrt(A1*A2)):0))*num(r.q)}
+function volSap(r){const L=num(r.l),B=num(r.b),A1=L*B,h=num(r.h),hp=num(r.hp),A2=(num(r.pa)+.05)*(num(r.pb)+.05);return (A1*h+(hp>0?hp/3*(A1+A2+Math.sqrt(A1*A2)):0))*num(r.q)}
 const volConc=r=>CT[r.t]?CT[r.t].v(r):0;
 const cTipo=()=>CT[V('concTipo')]?V('concTipo'):'laje';
 function ensureRow(t){}
@@ -740,7 +740,7 @@ function pfOk(key){const P=PF[key],t=P.type(),d=draft(key),v=P.val({...d,t}),msg
 function pfEdit(key,i){const r=S.rows[key][i];if(!r)return;if(key==='conc'){S.v.concTipo=r.t;renderSeg();renderArt()}const P=PF[key];S.v.dr[key+':'+P.type()]={...r};EDIT[key]=i;renderPF(key);$('#pf-'+key).scrollIntoView({behavior:'smooth',block:'start'})}
 function pfCancel(key){const P=PF[key],t=P.type();EDIT[key]=null;S.v.dr[key+':'+t]={desc:'',...P.def(t)};renderPF(key);save()}
 function renderList(key){const P=PF[key],L=S.rows[key];const fl=FLASH[key];FLASH[key]=null;
- $('#pl-'+key).innerHTML=L.length?'<div class="lst">'+L.map((r,i)=>{const t=key==='conc'?r.t:'est',F=P.F(t).filter(x=>x[0]!=='q'&&!x[4]&&!x[3]);const dims=key==='est'?`${esc(r.c)} m · ${esc(r.b)}×${esc(r.h)} cm`:F.filter(([k])=>num(r[k])>0).map(([k,l,u])=>`${esc(r[k])} ${u}`).join(' × ')+(num(r.q)>1?` · ${f(num(r.q),0)}×`:'')+(key==='est'?` · φ${esc(r.phi)} c/${esc(r.s)} cm`:'');
+ $('#pl-'+key).innerHTML=L.length?'<div class="lst">'+L.map((r,i)=>{const t=key==='conc'?r.t:'est',F=P.F(t).filter(x=>x[0]!=='q'&&!x[4]&&!x[3]);const dims=key==='est'?`${esc(r.c)} m · ${esc(r.b)}×${esc(r.h)} cm`:F.filter(([k])=>num(r[k])>0).map(([k,l,u])=>`${esc(String(r[k]).replace('.',','))} ${u}`).join(' × ')+(num(r.q)>1?` · ${f(num(r.q),0)}×`:'')+(key==='est'?` · φ${esc(r.phi)} c/${esc(r.s)} cm`:'');
   return `<div class="li${i===fl?' new':''}${EDIT[key]===i?' on':''}"><div><b>${P.name(t)}${r.desc?' '+esc(r.desc):' '+(i+1)}</b><small>${dims}</small></div><b class="v">${P.info?esc(estCalc(r).NT+' est.'):P.fmt(P.val(r))}</b><button class="x" data-ed="${key}" data-i="${i}" aria-label="Editar">✎</button><button class="x" data-rm="${key}" data-i="${i}" aria-label="Excluir">×</button></div>`}).join('')+`</div><div class="tot"><span>Total (${L.length} peça${L.length>1?'s':''})</span><span>${P.tot(L)}</span></div>`:'<p class="empty">Nenhuma peça lançada ainda. Preencha acima e toque em adicionar.</p>'}
 function onDraft(e){const t=e.target;if(!t.dataset||!t.dataset.dr)return;draft(t.dataset.dr)[t.dataset.f]=t.value;save();pfPrev(t.dataset.dr)}
 document.addEventListener('input',onDraft);document.addEventListener('change',e=>{if(e.target.tagName==='SELECT')onDraft(e)});
@@ -958,6 +958,7 @@ let USER='';
 (async()=>{try{const dk=window.claude&&window.claude.use?await window.claude.use('desktop'):null;if(dk&&dk.install&&await dk.install.state()==='available'){const b=$('#instBtn');b.hidden=false;b.onclick=async()=>{try{await dk.install.request()}catch(e){}}}}catch(e){}})();
 /* ---------- partida ---------- */
 for(const k in ROWS)renderRows(k);
+if(!S.v.unitM){const cv=r=>{const c=CT[r.t];if(c)c.cm.forEach(k=>{if(r[k]!==undefined&&r[k]!=='')r[k]=String(Math.round(num(r[k])/100*10000)/10000)});return r};S.rows.conc.forEach(cv);if(Array.isArray(S.v.tape))S.v.tape.forEach(cv);if(S.v.dr)for(const id in S.v.dr){if(id.startsWith('conc:')){const t=id.slice(5);if(CT[t])S.v.dr[id]={desc:S.v.dr[id].desc||'',...CT[t].d}}}S.v.unitM=1;save()}
 S.rows.conc=S.rows.conc.filter(r=>volConc(r)>0);S.rows.est=S.rows.est.filter(r=>estCalc(r).NT>0);
 initScalars();renderSeg();renderConc();renderPF('est');$$('.res').forEach(r=>io.observe(r));cRender();adsUI([]);tfLoad(null);renderTr();renderPList();fillConcSel();renderHist();show();calc();
 }
