@@ -265,3 +265,8 @@ body.hasbar{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
 .netbar{position:fixed;top:0;left:0;right:0;z-index:40;background:#fff1dc;color:#6b3206;font-size:14px;line-height:1.35;padding:calc(env(safe-area-inset-top) + 6px) 14px 7px;text-align:center;box-shadow:0 4px 12px -8px rgba(0,0,0,.4)}
 .netbar[hidden]{display:none}
 .netbar button{min-height:32px;padding:2px 10px;margin-left:6px;font-size:13px;border-radius:14px;background:#6b3206;color:#fff;border:0}
+
+/* sem zoom por toque duplo ou pinça */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:pan-x pan-y}
+*{touch-action:pan-x pan-y}
+button,a,.k,.tile{-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}

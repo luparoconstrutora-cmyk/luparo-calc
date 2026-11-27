@@ -1,5 +1,5 @@
 /* Luparo Calc · service worker: deixa o app abrir sem internet */
-const V='luparo-calc-78912057e3';
+const V='luparo-calc-551c651c64';
 const CORE=['/','/index.html','/manifest.webmanifest','/icon-192.png','/icon-512.png','/apple-touch-icon.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V&&k.startsWith('luparo-calc-')).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});

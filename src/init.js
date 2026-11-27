@@ -1,3 +1,7 @@
+/* ---------- bloqueia zoom (toque duplo e pinça) ---------- */
+['gesturestart','gesturechange','gestureend'].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
+document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1||(typeof e.scale==='number'&&e.scale!==1))e.preventDefault()},{passive:false});
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
 let USER='';
 (async()=>{try{const dk=window.claude&&window.claude.use?await window.claude.use('desktop'):null;if(dk&&dk.install&&await dk.install.state()==='available'){const b=$('#instBtn');b.hidden=false;b.onclick=async()=>{try{await dk.install.request()}catch(e){}}}}catch(e){}})();
 /* ---------- partida ---------- */
