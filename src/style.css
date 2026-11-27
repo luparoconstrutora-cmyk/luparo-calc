@@ -270,3 +270,5 @@ body.hasbar{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:pan-x pan-y}
 *{touch-action:pan-x pan-y}
 button,a,.k,.tile{-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+
+#p-calculadora .cxv,#p-calculadora .cxe{overflow:hidden;word-break:break-all;max-width:100%}
